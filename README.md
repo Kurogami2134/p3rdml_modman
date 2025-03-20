@@ -18,7 +18,14 @@ The mod manager currently supports three types of mods.
 
 ### Code Mods
 
-Code mods may reference multiple files to be enabled as a single mod.
+Code mods must specify a file to be installed as a mod.
+
+    [MOD INFO]
+    Name="MOD NAME"
+    Files="FILE"
+    Type="Code"
+
+Code mods may also reference multiple files to be enabled as a single mod.
 
     [MOD INFO]
     Name="MOD NAME"
@@ -27,12 +34,20 @@ Code mods may reference multiple files to be enabled as a single mod.
 
 ### Specific File Replacement
 
-File replacement mods must reference a single file, and a single target id indicating the file to replace.
+File replacement mods must reference a series of at least one file, and the same number of target ids indicating the files to replace.
 
     [MOD INFO]
     Name="MOD NAME"
     Files="NEWFILE"
     Target="FILEID"
+    Type="File"
+
+Another example, replacing multiple files.
+
+    [MOD INFO]
+    Name="MOD NAME"
+    Files="NEWFILE;NEWFILE2"
+    Target="FILEID;FILEID2"
     Type="File"
 
 ### Equipment Replacement

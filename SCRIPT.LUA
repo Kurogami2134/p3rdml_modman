@@ -120,6 +120,14 @@ function clear_files () --> nil
     files.mkdir("ms0:/P3rdML/files/")
 end
 
+function copy_file (mod, origin, dest) --> nil
+    files.copy("MODS/"..mod.."/"..origin, "ms0:/P3rdML/files/")
+    if files.exists("ms0:/P3rdML/files/"..dest) then
+        files.delete("ms0:/P3rdML/files/"..dest)
+    end
+    files.rename("ms0:/P3rdML/files/"..origin, "ms0:/P3rdML/files/"..dest)
+end
+
 function install_mods (mods) --> nil
     save_enabled(mods)
 
@@ -133,11 +141,20 @@ function install_mods (mods) --> nil
             elseif info[4] != nil then
                 replaced = replaced..mod..info[4]..";"
                 file = ini.read("MODS/"..mod.."/mod.ini", "MOD INFO", "Files", "null")
-                files.copy("MODS/"..mod.."/"..file, "ms0:/P3rdML/files/")
-                if files.exists("ms0:/P3rdML/files/"..info[4]) then
-                    files.delete("ms0:/P3rdML/files/"..info[4])
+                copy_file(mod, file, info[4])
+            elseif info[4] == nil then
+                targets = {}
+                replacements = {}
+                for file in string.gmatch(ini.read("MODS/"..mod.."/mod.ini", "MOD INFO", "Target", "null"), "([^;]+)") do
+                    table.insert(targets, file)
                 end
-                files.rename("ms0:/P3rdML/files/"..file, "ms0:/P3rdML/files/"..info[4])
+                for file in string.gmatch(ini.read("MODS/"..mod.."/mod.ini", "MOD INFO", "Files", "null"), "([^;]+)") do
+                    table.insert(replacements, file)
+                end
+                
+                for i, dest in pairs(targets) do
+                    copy_file(mod, replacements[i], dest)
+                end
             end
         end
     end
@@ -210,10 +227,8 @@ function main () --> nil
         elseif mods[mod_ids[index]][3] == "File" then
             if mods[mod_ids[index]][2] then
                 mods[mod_ids[index]][2] = false
-                mods[mod_ids[index]][4] = nil
             else
                 mods[mod_ids[index]][2] = true
-                mods[mod_ids[index]][4] = ini.read("MODS/"..mod_ids[index].."/mod.ini", "MOD INFO", "Target", "null")
             end
         elseif string.sub(mods[mod_ids[index]][3], 1, 5) == "Equip" then
             if mods[mod_ids[index]][2] then
