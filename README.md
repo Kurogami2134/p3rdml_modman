@@ -12,6 +12,8 @@ The mod manager will allow you to enable and disable any number of code mods. An
 
 Mods are stored as folders, containing a `mod.ini` file, and any other relevant mod files.
 
+If 'preview.png' exists within the mod's folder, it will be displayed in the mod list. This image must be 166x166 pixels in size.
+
 The mod manager currently supports three types of mods.
 
 * At least one example of each type of mod is included in the release.

@@ -1,11 +1,15 @@
 collectgarbage()
 color.loadpalette()
+
+if not bg then bg=image.load("background.png") end
+if not enabled_icon then enabled_icon=image.load("enabled.png") end
+
 buttons.interval(10, 10)
 
-function load_equipment (ty_spe) --> table[int], table[str], int
+function load_equipment (eq_type) --> table[int], table[str], int
     file_list = {}
     names = {}
-    parts = ini.read("EQUIPMENT_LIST/"..ty_spe..".ini", "files", "")
+    parts = ini.read("EQUIPMENT_LIST/"..eq_type..".ini", "files", "")
     count = 0
     for file in string.gmatch(parts, "([^;]+)") do
         table.insert(file_list, string.sub(file, -4, -1))
@@ -15,8 +19,8 @@ function load_equipment (ty_spe) --> table[int], table[str], int
     return file_list, names, count
 end
 
-function select_replace (equip_ty_spe) --> nil
-    parts, part_names, part_count = load_equipment(equip_ty_spe)
+function select_replace (equip_type) --> nil
+    parts, part_names, part_count = load_equipment(equip_type)
 
     index_s, y_s = 1, 17
 
@@ -184,61 +188,97 @@ end
 
 function main () --> nil
     mods, mod_ids, mod_count = load_list()
+    last_img = nil
+    preview = nil
+    frame = 0
+    pages = math.ceil(mod_count / 10)
 
-    index, y = 1, 17
+    index = 1
+    page = 0
+
+    sel_alpha = 10
+    alpha_inc = true
 
     while true do
     buttons.read()
 
-    screen.print(35, 5, "Mod list", 0.6)
-    max = mod_count < 15+index and mod_count or 15+index
-    y = 22
-    screen.print(25, y, ">", 0.6)
-    screen.print(400, 5, index.."/"..mod_count, 0.6)
-    for i=index, max do
-        screen.print(35, y, mods[mod_ids[i]][1], 0.6, mods[mod_ids[i]][2] and color.green or  color.red)
-        y = y + 12
+    if bg then bg:blit(0,0) end
+
+
+    sel_alpha += alpha_inc and 3 or -3
+    if sel_alpha <= 30 then
+        alpha_inc = true
+    elseif sel_alpha >= 180 then
+        alpha_inc = false
     end
 
-    screen.print(170, 240, "▲ To apply mod list", 0.6)
-    screen.print(170, 254, "[ ] To clear files and apply mod list", 0.6)
-    screen.print(105, 240, "O To exit", 0.6)
-    screen.print(25, 240, "X To toggle", 0.6)
+    screen.print(49, 53, "Mod list", 0.6, color.yellow)
+    screen.print(216, 53, (page+1).."/"..pages, 0.6)
+    y = 68
+    draw.fillrect(41, y-16+16*index, 220, 15, color.new(50, 232, 1, sel_alpha))
+    for i=page*10+1, page == pages-1 and (page*10) + mod_count % 10 or (page+1)*10 do
+        screen.print(43, y, mods[mod_ids[i]][1], 0.6)--, mods[mod_ids[i]][2] and color.green or  color.red)
+        if mods[mod_ids[i]][2] then
+            enabled_icon:blit(248, y+4)
+        end
+        y += 16
+    end
+
+    if last_img != mod_ids[page*10+index] and frame >= 30 then
+        last_img = mod_ids[page*10+index]
+        if files.exists("MODS/"..mod_ids[page*10+index].."/preview.png") then
+            preview = image.load("MODS/"..mod_ids[page*10+index].."/preview.png")
+        else
+            preview = nil
+        end
+    end
+
+    frame = math.min(frame+1, 50)
+
+    if preview != nil then
+        preview:blit(273, 55)
+    end
 
     if buttons.down then
         index += 1
-        y += 12
+        frame = 0
     elseif buttons.up then
         index -= 1
-        y -= 12
+        frame = 0
+    elseif buttons.left then
+        page = math.max(0, page-1)
+        frame = 0
+    elseif buttons.right then
+        page = math.min(pages-1, page+1)
+        frame = 0
     end
 
     if index < 1 then
-        index, y = mod_count, mod_count*12+22
+        index = 10
     end
 
-    if index > mod_count then
-        index, y = 1, 22
+    if index > (page == pages-1 and mod_count % 10 or 10) then
+        index = 1
     end
 
     if buttons.cross then
-        if mods[mod_ids[index]][3] == "Code" then
-            mods[mod_ids[index]][2] = not mods[mod_ids[index]][2]
-        elseif mods[mod_ids[index]][3] == "File" then
-            if mods[mod_ids[index]][2] then
-                mods[mod_ids[index]][2] = false
+        if mods[mod_ids[page*10+index]][3] == "Code" then
+            mods[mod_ids[page*10+index]][2] = not mods[mod_ids[page*10+index]][2]
+        elseif mods[mod_ids[page*10+index]][3] == "File" then
+            if mods[mod_ids[page*10+index]][2] then
+                mods[mod_ids[page*10+index]][2] = false
             else
-                mods[mod_ids[index]][2] = true
+                mods[mod_ids[page*10+index]][2] = true
             end
-        elseif string.sub(mods[mod_ids[index]][3], 1, 5) == "Equip" then
-            if mods[mod_ids[index]][2] then
-                mods[mod_ids[index]][2] = false
-                mods[mod_ids[index]][4] = nil
+        elseif string.sub(mods[mod_ids[page*10+index]][3], 1, 5) == "Equip" then
+            if mods[mod_ids[page*10+index]][2] then
+                mods[mod_ids[page*10+index]][2] = false
+                mods[mod_ids[page*10+index]][4] = nil
             else
-                dest = select_replace(string.sub(mods[mod_ids[index]][3], 6, -1))
+                dest = select_replace(string.sub(mods[mod_ids[page*10+index]][3], 6, -1))
                 if dest != nil then
-                    mods[mod_ids[index]][2] = true
-                    mods[mod_ids[index]][4] = dest
+                    mods[mod_ids[page*10+index]][2] = true
+                    mods[mod_ids[page*10+index]][4] = dest
                 end
             end
         end
