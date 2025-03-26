@@ -1,15 +1,26 @@
 collectgarbage()
 color.loadpalette()
 
+dofile "anim_compiler.lua"
+
 if not bg then bg=image.load("background.png") end
 if not enabled_icon then enabled_icon=image.load("enabled.png") end
 
 buttons.interval(10, 10)
 
+function split(str, sep) --> table[string]
+    local parts = string.gmatch(str, "([^"..sep.."]+)")
+    local res = {}
+    for part in parts do
+        table.insert(res, part)
+    end
+    return res
+end
+
 function load_equipment (eq_type) --> table[int], table[str], int
     file_list = {}
     names = {}
-    parts = ini.read("EQUIPMENT_LIST/"..eq_type..".ini", "files", "")
+    parts = ini.read("DATA/EQUIPMENT_LIST/"..eq_type..".ini", "files", "")
     count = 0
     for file in string.gmatch(parts, "([^;]+)") do
         table.insert(file_list, string.sub(file, -4, -1))
@@ -82,11 +93,11 @@ function load_list () --> table[str, table[str], {str, bool, str}], int
         end
     end
 
-    return load_replaced(load_enabled(mods)), mod_ids, mod_count
+    return load_animations(load_replaced(load_enabled(mods))), mod_ids, mod_count
 end
 
 function load_replaced (mods) --> table[str, {str, bool}]
-    replaced = ini.read("replaced_files.ini", "files", "nul")
+    local replaced = ini.read("replaced_files.ini", "files", "nul")
 
     for mod in string.gmatch(replaced, "([^';']+)") do
         if mods[string.sub(mod, 1, -5)] != nil then
@@ -97,8 +108,21 @@ function load_replaced (mods) --> table[str, {str, bool}]
     return mods
 end
 
+function load_animations (mods) --> table[str, {str, bool}]
+    local anim = ini.read("anim_ids.ini", "Anim", "nul")
+    local mod_id = ""
+    for mod in string.gmatch(anim, "([^';']+)") do
+        mod = split(mod, ":")
+        if mods[mod[1]] != nil then
+            mods[mod[1]][5] = mod[2]
+        end
+    end
+
+    return mods
+end
+
 function load_enabled (mods) --> table[str, {str, bool}]
-    enabled = ini.read("enabled.ini", "enabled", "nul")
+    local enabled = ini.read("enabled.ini", "enabled", "nul")
 
     for mod in string.gmatch(enabled, "([^';']+)") do
         if mods[mod] != nil then
@@ -137,34 +161,81 @@ function install_mods (mods) --> nil
 
     replaced = ""
     code_mods = {}
+    anim_mods = {}
+    file_mods = {}
 
     for mod, info in pairs(mods) do
         if info[2] then
-            if info[3] == "Code" then
+            if info[3] == "Pack" then
+                local code = ini.read("MODS/"..mod.."/mod.ini", "MOD INFO", "Code", "null")
+                if code != "null" then
+                    code = split(code, ";")
+                    for _, child in pairs(code) do
+                        table.insert(code_mods, mod.."/"..child)
+                    end
+                end
+                local file = ini.read("MODS/"..mod.."/mod.ini", "MOD INFO", "File", "null")
+                if file != null then
+                    for _, mod in split(file, ";") do
+                        table.insert(file_mods, mod)
+                    end
+                end
+
+            elseif info[3] == "Code" then
                 table.insert(code_mods, mod)
             elseif info[4] != nil then
                 replaced = replaced..mod..info[4]..";"
                 file = ini.read("MODS/"..mod.."/mod.ini", "MOD INFO", "Files", "null")
                 copy_file(mod, file, info[4])
+
+                if info[5] != nil and ini.read("MODS/"..mod.."/mod.ini", "MOD INFO", "Animation", "null") != "null" then
+                    anim_mods[mod] = info[5]
+                end
             elseif info[4] == nil then
-                targets = {}
-                replacements = {}
-                for file in string.gmatch(ini.read("MODS/"..mod.."/mod.ini", "MOD INFO", "Target", "null"), "([^;]+)") do
-                    table.insert(targets, file)
-                end
-                for file in string.gmatch(ini.read("MODS/"..mod.."/mod.ini", "MOD INFO", "Files", "null"), "([^;]+)") do
-                    table.insert(replacements, file)
-                end
-                
-                for i, dest in pairs(targets) do
-                    copy_file(mod, replacements[i], dest)
-                end
+                table.insert(file_mods, mod)
             end
         end
     end
 
     ini.write("replaced_files.ini", "files", replaced)
-    build_mods_bin(code_mods)
+    if file_mods then
+        replace_files(file_mods)
+    end
+    if code_mods then
+        build_mods_bin(code_mods)
+    end
+    if anim_mods then
+        build_animations(anim_mods)
+    end
+end
+
+function replace_files (file_mods) --> nil
+    for _, mod in pairs(file_mods) do
+        local targets = {}
+        local replacements = {}
+        for file in string.gmatch(ini.read("MODS/"..mod.."/mod.ini", "MOD INFO", "Target", "null"), "([^;]+)") do
+            table.insert(targets, file)
+        end
+        for file in string.gmatch(ini.read("MODS/"..mod.."/mod.ini", "MOD INFO", "Files", "null"), "([^;]+)") do
+            table.insert(replacements, file)
+        end
+        
+        for i, dest in pairs(targets) do
+            copy_file(mod, replacements[i], dest)
+        end
+    end
+end
+
+function build_animations (anim_mods) --> nil
+    local animations = {}
+    local mods = ""
+    for mod, mdl_id in pairs(anim_mods) do
+        mods = mods..mod..":"..mdl_id..";"
+        local animpath = "MODS/"..mod.."/"..ini.read("MODS/"..mod.."/mod.ini", "MOD INFO", "Animation", "null")
+        table.insert(animations, {animpath, mdl_id})
+    end
+    ini.write("anim_ids.ini", "Anim", mods)
+    build_anim_pack(animations)
 end
 
 function build_mods_bin (mod_list) --> nil
@@ -254,7 +325,7 @@ function main () --> nil
     end
 
     if index < 1 then
-        index = 10
+        index = (page == pages-1 and mod_count % 10 or 10)
     end
 
     if index > (page == pages-1 and mod_count % 10 or 10) then
@@ -262,15 +333,7 @@ function main () --> nil
     end
 
     if buttons.cross then
-        if mods[mod_ids[page*10+index]][3] == "Code" then
-            mods[mod_ids[page*10+index]][2] = not mods[mod_ids[page*10+index]][2]
-        elseif mods[mod_ids[page*10+index]][3] == "File" then
-            if mods[mod_ids[page*10+index]][2] then
-                mods[mod_ids[page*10+index]][2] = false
-            else
-                mods[mod_ids[page*10+index]][2] = true
-            end
-        elseif string.sub(mods[mod_ids[page*10+index]][3], 1, 5) == "Equip" then
+        if string.sub(mods[mod_ids[page*10+index]][3], 1, 5) == "Equip" then
             if mods[mod_ids[page*10+index]][2] then
                 mods[mod_ids[page*10+index]][2] = false
                 mods[mod_ids[page*10+index]][4] = nil
@@ -279,8 +342,11 @@ function main () --> nil
                 if dest != nil then
                     mods[mod_ids[page*10+index]][2] = true
                     mods[mod_ids[page*10+index]][4] = dest
+                    mods[mod_ids[page*10+index]][5] = index_s - 1
                 end
             end
+        else --Files, Pack, Code
+            mods[mod_ids[page*10+index]][2] = not mods[mod_ids[page*10+index]][2]
         end
     elseif buttons.triangle then
         install_mods(mods)

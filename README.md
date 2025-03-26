@@ -86,3 +86,28 @@ Possible equip types are:
 |BODY|Body/Chest armor|
 |WAIST|Waist armor|
 |LEGS|Leg armor|
+
+#### Weapon animations
+
+Weapon mods can have a `Animation` key referencing a json file to use for custom animations. `Special Weapon Animations` must be active as well for animations to work.
+
+    [MOD INFO]
+    Name="MOD NAME"
+    Files="NEWFILE"
+    Type="EquipTYPE"
+    Anim="modname.json"
+
+
+### Mod packs
+
+Mod packs can contain any number of mods inside of them and must be declared as follows:
+
+    [MOD INFO]
+    Name="MOD PACK"
+    Code="mod1;mod2"
+    File="mod3;mod4"
+    Type="Pack"
+
+Mod packs currently can contain [Code](#code-mods) mods or [specific file replacement](#specific-file-replacement) mods.
+
+A `;` separated list of Code mods must be provided with the `Code` key, and a `;` separated list of File mods with the `File` key.
