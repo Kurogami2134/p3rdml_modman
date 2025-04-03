@@ -198,13 +198,13 @@ function install_mods (mods) --> nil
     end
 
     ini.write("replaced_files.ini", "files", replaced)
-    if file_mods then
+    if #file_mods > 0 then
         replace_files(file_mods)
     end
-    if code_mods then
+    if #code_mods > 0 then
         build_mods_bin(code_mods)
     end
-    if anim_mods then
+    if #anim_mods > 0 then
         build_animations(anim_mods)
     end
 end
