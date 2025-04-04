@@ -65,13 +65,13 @@ function build_anim_pack (anims) --> bytes
     local entries = ""
     local anim_data = ""
     for _, anim in pairs(anims) do
-        anim = load_anim(anim[1], anim[2], 0x99C0004 + 0x14 * #anims + #anim_data)
+        anim = load_anim(anim[1], anim[2], anim_start_offset + 4 + 0x14 * #anims + #anim_data)
         entries = entries..anim[1]
         anim_data = anim_data..anim[2]
     end
     
     local file = io.open("ms0:/P3rdML/mods/spanimpack.bin", "wb")
-    file:write(int_to_bytes(0x99C0000)..int_to_bytes(#entries+4+#anim_data))
+    file:write(int_to_bytes(anim_start_offset)..int_to_bytes(#entries+4+#anim_data))
     file:write(entries.."\255\255\255\255")
     file:write(anim_data.."\255\255\255\255\0\0\0\0")
     file:close()

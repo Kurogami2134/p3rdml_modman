@@ -1,0 +1,26 @@
+{
+    "TEXTURE": {
+        "H_STRIDE": 29,
+        "V_STRIDE": 30,
+        "LUMA": 31,
+        "ALPHA": 35,
+        "RGB": 36,
+        "VISIBLE": 41
+    },
+    "MODEL": {
+        "ROTATE_X": 6,
+        "ROTATE_Y": 7,
+        "ROTATE_Z": 8,
+        "ROTATION_X": 0,
+        "ROTATION_Y": 1,
+        "ROTATION_Z": 2,
+        "SCALE": 14,
+        "SCALE_XY": 12,
+        "SCALE_XZ": 9,
+        "SCALE_YZ": 10,
+        "SCALE_Z": 11,
+        "TRANSLATE_Y": 15,
+        "TRANSLATE_X": 16,
+        "TRANSLATE_Z": 17
+    }
+}
