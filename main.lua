@@ -165,6 +165,7 @@ function install_mods (mods) --> nil
     code_mods = {}
     anim_mods = {}
     file_mods = {}
+    compile_anims = false
 
     for mod, info in pairs(mods) do
         if info[2] then
@@ -192,6 +193,7 @@ function install_mods (mods) --> nil
 
                 if info[5] != nil and ini.read("MODS/"..mod.."/mod.ini", "MOD INFO", "Animation", "null") != "null" then
                     anim_mods[mod] = info[5]
+                    compile_anims = true
                 end
             elseif info[4] == nil then
                 table.insert(file_mods, mod)
@@ -206,7 +208,7 @@ function install_mods (mods) --> nil
     if #code_mods > 0 then
         build_mods_bin(code_mods)
     end
-    if #anim_mods > 0 then
+    if compile_anims then
         build_animations(anim_mods)
     end
 end

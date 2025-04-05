@@ -1,7 +1,7 @@
 json = require "json"
 
 if not ANIM_TYPES then
-    local file = io.open("DATA/anim_types.json", "r")
+    local file = io.open(data_dir.."/anim_types.json", "r")
     ANIM_TYPES = json.decode(file:read("*a"))
     file:close()
 end
@@ -70,7 +70,7 @@ function build_anim_pack (anims) --> bytes
         anim_data = anim_data..anim[2]
     end
     
-    local file = io.open("ms0:/P3rdML/mods/spanimpack.bin", "wb")
+    local file = io.open("ms0:/"..modloader_root.."/mods/spanimpack.bin", "wb")
     file:write(int_to_bytes(anim_start_offset)..int_to_bytes(#entries+4+#anim_data))
     file:write(entries.."\255\255\255\255")
     file:write(anim_data.."\255\255\255\255\0\0\0\0")

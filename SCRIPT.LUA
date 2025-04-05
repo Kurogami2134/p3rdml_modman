@@ -45,7 +45,7 @@ while true do
             anim_db = "anim_ids_hd.ini"
             replaced_db = "replaced_files_hd.ini"
             data_dir = "DATA_HD"
-            anim_start_offset = nil
+            anim_start_offset = 0x0B000400
         end
         dofile "main.lua"
     end
