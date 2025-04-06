@@ -2,7 +2,8 @@
     "TEXTURE": {
         "H_STRIDE": 29,
         "V_STRIDE": 30,
-        "LUMA": 31,
+        "LUMA (SMOOTH)": 31,
+        "LUMA": 32,
         "ALPHA": 35,
         "RGB": 36,
         "VISIBLE": 41
