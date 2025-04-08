@@ -35,7 +35,7 @@ function load_anim (path, mdl_id, addr) --> bytes
     local data = json.decode(json_string)
 
     local mdl_addr = #data["model"] > 0 and addr or 0
-    local tex_addr = #data["texture"] > 0 and addr + 0x14*#data["model"] or 0
+    local tex_addr = #data["texture"] > 0 and addr + 0x1C*#data["model"] or 0
 
     local bin = string.char(WPN_TYPES[data["type"]:upper()]).."\00"
     bin = bin..string.char(mdl_id)..string.char(#data["model"])..string.char(#data["texture"]).."\00\00\00"
