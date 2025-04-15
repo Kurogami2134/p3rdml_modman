@@ -30,6 +30,20 @@ function load_equipment (eq_type) --> table[int], table[str], int
     return file_list, names, count
 end
 
+function file_copy(origin, dest) --> nil
+    if not files.exists(dest) then
+        files.mkdir(dest)
+    end
+
+    local file = io.open(origin, "rb")
+    local file_data = file:read("*all")
+    file:close()
+    
+    file = io.open(dest.."/"..files.nopath(origin), "wb")
+    file:write(file_data)
+    file:close()
+end
+
 function select_replace (equip_type) --> nil
     parts, part_names, part_count = load_equipment(equip_type)
 
@@ -151,7 +165,7 @@ function clear_files () --> nil
 end
 
 function copy_file (mod, origin, dest) --> nil
-    files.copy("MODS/"..mod.."/"..origin, "ms0:/"..modloader_root.."/files/")
+    file_copy("MODS/"..mod.."/"..origin, "ms0:/"..modloader_root.."/files")
     if files.exists("ms0:/"..modloader_root.."/files/"..dest) then
         files.delete("ms0:/"..modloader_root.."/files/"..dest)
     end
@@ -252,7 +266,7 @@ function build_mods_bin (mod_list) --> nil
             io.write(string.char(string.len(mod_file)+2))
             io.write("/"..mod_file..string.char(0))
 
-            files.copy("MODS/"..mod.."/"..mod_file, "ms0:/"..modloader_root.."/mods/")
+            file_copy("MODS/"..mod.."/"..mod_file, "ms0:/"..modloader_root.."/mods")
         end
     end
 
