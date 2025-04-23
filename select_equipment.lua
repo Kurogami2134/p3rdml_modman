@@ -14,7 +14,27 @@ end
 function load_set_list() --> table[str], int
     names = {}
     count = 0
+    sets = ini.read(data_dir.."/EQUIPMENT_LIST/SET.ini", "setsfb", "")
+    for set in string.gmatch(sets, "([^,]+)") do
+        table.insert(names, set)
+        count += 1
+    end
+    sets = ini.read(data_dir.."/EQUIPMENT_LIST/SET.ini", "setsfg", "")
+    for set in string.gmatch(sets, "([^,]+)") do
+        table.insert(names, set)
+        count += 1
+    end
     sets = ini.read(data_dir.."/EQUIPMENT_LIST/SET.ini", "setsf", "")
+    for set in string.gmatch(sets, "([^,]+)") do
+        table.insert(names, set)
+        count += 1
+    end
+    sets = ini.read(data_dir.."/EQUIPMENT_LIST/SET.ini", "setsmb", "")
+    for set in string.gmatch(sets, "([^,]+)") do
+        table.insert(names, set)
+        count += 1
+    end
+    sets = ini.read(data_dir.."/EQUIPMENT_LIST/SET.ini", "setsmg", "")
     for set in string.gmatch(sets, "([^,]+)") do
         table.insert(names, set)
         count += 1
