@@ -96,11 +96,11 @@ Armor sets can be distributed as a single mod by setting it's type to `EquipSET`
     - Waist
     - Legs
 
-In case an armor set doesn't include one or more of those pieces, a blank space must be left in it's place.
+In case an armor set doesn't include one or more of those pieces, a `null` must be in it's place.
 
     [MOD INFO]
     Name="MOD NAME"
-    Files="HEAD;;BODY;WAIST;"
+    Files="HEAD;null;BODY;WAIST;null"
     Type="EquipSET"
     Anim="modname.json"
 

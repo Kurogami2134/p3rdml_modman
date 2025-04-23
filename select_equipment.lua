@@ -93,7 +93,7 @@ function select_set () --> nil
     while true do
     buttons.read()
 
-    screen.print(35, 5, "Parts List", 0.6)
+    screen.print(35, 5, "Set List", 0.6)
     local max = set_count < 15+index_s and set_count or 15+index_s
     y_s = 22
     screen.print(25, y_s, ">", 0.6)
