@@ -17,19 +17,6 @@ function split(str, sep) --> table[string]
     return res
 end
 
-function load_equipment (eq_type) --> table[int], table[str], int
-    file_list = {}
-    names = {}
-    parts = ini.read(data_dir.."/EQUIPMENT_LIST/"..eq_type..".ini", "files", "")
-    count = 0
-    for file in string.gmatch(parts, "([^;]+)") do
-        table.insert(file_list, string.sub(file, -4, -1))
-        table.insert(names, string.sub(file, 1, -5))
-        count += 1
-    end
-    return file_list, names, count
-end
-
 function file_copy(origin, dest) --> nil
     if not files.exists(dest) then
         files.mkdir(dest)
@@ -44,52 +31,7 @@ function file_copy(origin, dest) --> nil
     file:close()
 end
 
-function select_replace (equip_type) --> nil
-    parts, part_names, part_count = load_equipment(equip_type)
-
-    index_s, y_s = 1, 17
-
-    while true do
-    buttons.read()
-
-    screen.print(35, 5, "Parts List", 0.6)
-    max = part_count < 15+index_s and part_count or 15+index_s
-    y_s = 22
-    screen.print(25, y_s, ">", 0.6)
-    screen.print(400, 5, index_s.."/"..part_count, 0.6)
-    for i=index_s, max do
-        screen.print(35, y_s, part_names[i], 0.6)
-        y_s = y_s + 12
-    end
-
-    screen.print(105, 240, "O To exit", 0.6)
-    screen.print(25, 240, "X To Select", 0.6)
-
-    if buttons.down then
-        index_s += 1
-        y_s += 12
-    elseif buttons.up then
-        index_s -= 1
-        y_s -= 12
-    end
-
-    if index_s < 1 then
-        index_s, y_s = part_count, part_count*12+22
-    end
-
-    if index_s > part_count then
-        index_s, y_s = 1, 22
-    end
-
-    if buttons.cross then
-        return parts[index_s]
-    elseif buttons.circle then
-        return nil
-    end
-
-    screen.flip()
-    end
-end
+dofile("select_equipment.lua")
 
 function load_list () --> table[str, table[str], {str, bool, str}], int
     mods = {}
@@ -108,8 +50,7 @@ function load_list () --> table[str, table[str], {str, bool, str}], int
         end
     end
 
-    return load_animations(load_replaced(load_enabled(mods))), mod_ids, #mod_ids
-    -- esto crashea con exactamente 10 mods
+    return load_sets(load_animations(load_replaced(load_enabled(mods)))), mod_ids, #mod_ids
 end
 
 function load_replaced (mods) --> table[str, {str, bool}]
@@ -124,8 +65,22 @@ function load_replaced (mods) --> table[str, {str, bool}]
     return mods
 end
 
+function load_sets (mods) --> table[str, {str, bool}]
+    local sets = ini.read(replaced_sets_db, "files", "null")
+    local mod_id = ""
+    for mod in string.gmatch(sets, "([^';']+)") do
+        mod = split(mod, ":")
+        if mods[mod[1]] != nil then
+            mods[mod[1]][5] = mod[2]
+            mods[mod[1]][4] = load_set_from_id(mod[2])
+        end
+    end
+
+    return mods
+end
+
 function load_animations (mods) --> table[str, {str, bool}]
-    local anim = ini.read(anim_db, "Anim", "nul")
+    local anim = ini.read(anim_db, "Anim", "null")
     local mod_id = ""
     for mod in string.gmatch(anim, "([^';']+)") do
         mod = split(mod, ":")
@@ -179,6 +134,7 @@ function install_mods (mods) --> nil
     code_mods = {}
     anim_mods = {}
     file_mods = {}
+    set_mods  = {}
     compile_anims = false
 
     for mod, info in pairs(mods) do
@@ -200,6 +156,9 @@ function install_mods (mods) --> nil
 
             elseif info[3] == "Code" then
                 table.insert(code_mods, mod)
+            elseif info[3] == "EquipSET" then
+                file = split(ini.read("MODS/"..mod.."/mod.ini", "MOD INFO", "Files", "null"), ";")
+                table.insert(set_mods, {mod, info[5], split(info[4], ","), file})
             elseif info[4] != nil then
                 replaced = replaced..mod..info[4]..";"
                 file = ini.read("MODS/"..mod.."/mod.ini", "MOD INFO", "Files", "null")
@@ -219,12 +178,28 @@ function install_mods (mods) --> nil
     if #file_mods > 0 then
         replace_files(file_mods)
     end
+    if #set_mods > 0 then
+        copy_sets(set_mods)
+    end
     if #code_mods > 0 then
         build_mods_bin(code_mods)
     end
     if compile_anims then
         build_animations(anim_mods)
     end
+end
+
+function copy_sets(set_mods) --> nil
+    replaced_sets = ""
+    for _, mod in pairs(set_mods) do
+        replaced_sets = replaced_sets..mod[1]..":"..mod[2]..";"
+        for i=1,5 do
+            if mod[3][i] != "" and mod[4][i] != "" then
+                copy_file(mod[1], mod[4][i], mod[3][i])
+            end
+        end
+    end
+    ini.write(replaced_sets_db, "files", replaced_sets)
 end
 
 function replace_files (file_mods) --> nil
@@ -356,7 +331,11 @@ function main () --> nil
                 mods[mod_ids[page*10+index]][2] = false
                 mods[mod_ids[page*10+index]][4] = nil
             else
-                dest = select_replace(string.sub(mods[mod_ids[page*10+index]][3], 6, -1))
+                if string.sub(mods[mod_ids[page*10+index]][3], -3, -1) == "SET" then
+                    dest = select_set()
+                else
+                    dest = select_replace(string.sub(mods[mod_ids[page*10+index]][3], 6, -1))
+                end
                 if dest != nil then
                     mods[mod_ids[page*10+index]][2] = true
                     mods[mod_ids[page*10+index]][4] = dest

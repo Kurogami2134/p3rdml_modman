@@ -33,17 +33,19 @@ while true do
         if selection == 0 then
             game_version = "NOHD"
             modloader_root = "P3rdML"
-            enabled_db = "enabled.ini"
-            anim_db = "anim_ids.ini"
-            replaced_db = "replaced_files.ini"
+            enabled_db = "user/nohd/enabled.ini"
+            anim_db = "user/nohd/anim_ids.ini"
+            replaced_db = "user/nohd/replaced_files.ini"
+            replaced_sets_db = "user/nohd/sets.ini"
             data_dir = "DATA"
             anim_start_offset = 0x99C0000
         else
             game_version = "HD"
             modloader_root = "P3rdHDML"
-            enabled_db = "enabled_hd.ini"
-            anim_db = "anim_ids_hd.ini"
-            replaced_db = "replaced_files_hd.ini"
+            enabled_db = "user/hd/enabled.ini"
+            anim_db = "user/hd/anim_ids.ini"
+            replaced_db = "user/hd/replaced_files.ini"
+            replaced_sets_db = "user/hd/sets.ini"
             data_dir = "DATA_HD"
             anim_start_offset = 0x0B000400
         end

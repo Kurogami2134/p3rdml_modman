@@ -87,6 +87,23 @@ Possible equip types are:
 |WAIST|Waist armor|
 |LEGS|Leg armor|
 
+#### Armor Set Mods
+
+Armor sets can be distributed as a single mod by setting it's type to `EquipSET` and `Files` to a set of 5 `;` separated files indicating each piece in the following order:
+    - Head
+    - Arms
+    - Body
+    - Waist
+    - Legs
+
+In case an armor set doesn't include one or more of those pieces, a blank space must be left in it's place.
+
+    [MOD INFO]
+    Name="MOD NAME"
+    Files="HEAD;;BODY;WAIST;"
+    Type="EquipSET"
+    Anim="modname.json"
+
 #### Weapon animations
 
 Weapon mods can have a `Animation` key referencing a json file to use for custom animations. `Special Weapon Animations` must be active as well for animations to work.
