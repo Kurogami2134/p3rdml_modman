@@ -12,6 +12,8 @@ function split(str, sep) --> table[string]
     local parts = string.gmatch(str, "([^"..sep.."]+)")
     local res = {}
     for part in parts do
+        debug_msg = part
+        dofile("debug.lua")
         table.insert(res, part)
     end
     return res
@@ -194,7 +196,9 @@ function copy_sets(set_mods) --> nil
     for _, mod in pairs(set_mods) do
         replaced_sets = replaced_sets..mod[1]..":"..mod[2]..";"
         for i=1,5 do
-            if mod[3][i] != "" and mod[4][i] != "" then
+            if mod[3][i] != "null" and mod[4][i] != "null" then
+                debug_msg = mod[3][i].." < "..mod[4][i].." for index "..i.." and dest is "..#mod[3]
+                --dofile("debug.lua")
                 copy_file(mod[1], mod[4][i], mod[3][i])
             end
         end
