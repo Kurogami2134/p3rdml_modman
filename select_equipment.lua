@@ -2,6 +2,10 @@ function load_equipment (eq_type) --> table[int], table[str], int
     file_list = {}
     names = {}
     parts = ini.read(data_dir.."/EQUIPMENT_LIST/"..eq_type..".ini", "files", "")
+    parts = parts..ini.read(data_dir.."/EQUIPMENT_LIST/"..eq_type..".ini", "files2", "")
+    parts = parts..ini.read(data_dir.."/EQUIPMENT_LIST/"..eq_type..".ini", "files3", "")
+    parts = parts..ini.read(data_dir.."/EQUIPMENT_LIST/"..eq_type..".ini", "files4", "")
+    parts = parts..ini.read(data_dir.."/EQUIPMENT_LIST/"..eq_type..".ini", "files5", "")
     count = 0
     for file in string.gmatch(parts, "([^;]+)") do
         table.insert(file_list, string.sub(file, -4, -1))
