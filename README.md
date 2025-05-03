@@ -106,14 +106,25 @@ In case an armor set doesn't include one or more of those pieces, a `null` must 
 
 #### Weapon animations
 
-Weapon mods can have a `Animation` key referencing a json file to use for custom animations. `Special Weapon Animations` must be active as well for animations to work.
+Weapon mods can have an `Animation` key referencing a json file to use for custom animations. `Special Weapon Animations` must be active as well for animations to work.
 
     [MOD INFO]
     Name="MOD NAME"
     Files="NEWFILE"
     Type="EquipTYPE"
-    Anim="modname.json"
+    Animation="modname.json"
 
+#### Weapon Sounds
+
+Weapon mods can also include an `Audio` key referencing two files to use for sounds.
+
+    [MOD INFO]
+    Name="MOD NAME"
+    Files="NEWFILE"
+    Type="EquipTYPE"
+    Audio="header.bin;sounds.bin"
+
+* In a few specific cases, replacing a weapons sound effects, will also replace another's. These cases seem to be few and far apart so it shouldn't pose any real issue.
 
 ### Mod packs
 

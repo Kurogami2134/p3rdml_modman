@@ -43,7 +43,7 @@ function copy_file (mod, origin, dest) --> nil
     if files.exists("ms0:/"..modloader_root.."/files/"..dest) then
         files.delete("ms0:/"..modloader_root.."/files/"..dest)
     end
-    files.rename("ms0:/"..modloader_root.."/files/"..origin, "ms0:/"..modloader_root.."/files/"..dest)
+    files.rename("ms0:/"..modloader_root.."/files/"..files.nopath(origin), "ms0:/"..modloader_root.."/files/"..dest)
 end
 
 function install_mods (mods) --> nil
@@ -92,6 +92,16 @@ function install_mods (mods) --> nil
                 if info["dest_id"] != nil and ini.read("MODS/"..mod.."/mod.ini", "MOD INFO", "Animation", "null") != "null" then
                     anim_mods[mod] = info["dest_id"]
                     compile_anims = true
+                end
+
+                if info["dest_id"] != nil and ini.read("MODS/"..mod.."/mod.ini", "MOD INFO", "Audio", "null") != "null" then
+                    local audio = split(ini.read("MODS/"..mod.."/mod.ini", "MOD INFO", "Audio", "null"), ";")
+
+                    local header = ini.read(data_dir.."/AUDIO/"..string.sub(info["type"], 6, -1)..".ini", "header"..info["dest_id"], "null")
+                    local bin = ini.read(data_dir.."/AUDIO/"..string.sub(info["type"], 6, -1)..".ini", "bin"..info["dest_id"], "null")
+
+                    copy_file(mod, audio[1], header)
+                    copy_file(mod, audio[2], bin)
                 end
             elseif info["dest"] == nil then
                 table.insert(file_mods, mod)
