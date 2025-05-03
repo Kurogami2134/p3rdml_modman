@@ -34,22 +34,24 @@ while true do
             game_version = "NOHD"
             modloader_root = "P3rdML"
             enabled_db = "user/nohd/enabled.ini"
-            anim_db = "user/nohd/anim_ids.ini"
+            --anim_db = "user/nohd/anim_ids.ini"
             replaced_db = "user/nohd/replaced_files.ini"
-            replaced_sets_db = "user/nohd/sets.ini"
+            dest_ids_db = "user/nohd/dest_ids.ini"
+            --replaced_sets_db = "user/nohd/sets.ini"
             data_dir = "DATA"
             anim_start_offset = 0x99C0000
         else
             game_version = "HD"
             modloader_root = "P3rdHDML"
             enabled_db = "user/hd/enabled.ini"
-            anim_db = "user/hd/anim_ids.ini"
+            --anim_db = "user/hd/anim_ids.ini"
             replaced_db = "user/hd/replaced_files.ini"
-            replaced_sets_db = "user/hd/sets.ini"
+            dest_ids_db = "user/hd/dest_ids.ini"
+            --replaced_sets_db = "user/hd/sets.ini"
             data_dir = "DATA_HD"
             anim_start_offset = 0x0B000400
         end
-        dofile "main.lua"
+        dofile "code/main.lua"
     end
 
     screen.flip()

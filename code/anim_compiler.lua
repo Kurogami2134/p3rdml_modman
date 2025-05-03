@@ -1,4 +1,4 @@
-json = require "json"
+json = require "code/json"
 
 if not ANIM_TYPES then
     local file = io.open(data_dir.."/anim_types.json", "r")

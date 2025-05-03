@@ -1,7 +1,9 @@
 collectgarbage()
 color.loadpalette()
 
-dofile "anim_compiler.lua"
+dofile "code/anim_compiler.lua"
+dofile "code/select_equipment.lua"
+dofile "code/mods.lua"
 
 if not bg then bg=image.load("assets/mm_background.png") end
 if not enabled_icon then enabled_icon=image.load("assets/enabled.png") end
@@ -31,89 +33,6 @@ function file_copy(origin, dest) --> nil
     file:close()
 end
 
-dofile("select_equipment.lua")
-
-function load_list () --> table[str, table[str], {str, bool, str}], int
-    mods = {}
-    mod_ids = {}
-
-    mod_list = files.listdirs("MODS/")
-    for _, dirs in ipairs(mod_list) do
-        if files.exists(dirs["path"].."/mod.ini") then
-            mod_name = ini.read(dirs["path"].."/mod.ini", "MOD INFO", "Name", "null")
-            mod_type = ini.read(dirs["path"].."/mod.ini", "MOD INFO", "Type", "null")
-            game_ver = ini.read(dirs["path"].."/mod.ini", "MOD INFO", "Version", "NOHD")
-            if (string.sub(mod_type, 1, 5) == "Equip") or (game_ver == game_version) then
-                mods[dirs["name"]] = {mod_name, false, mod_type, null}
-                table.insert(mod_ids, dirs["name"])
-            end
-        end
-    end
-
-    return load_sets(load_animations(load_replaced(load_enabled(mods)))), mod_ids, #mod_ids
-end
-
-function load_replaced (mods) --> table[str, {str, bool}]
-    local replaced = ini.read(replaced_db, "files", "nul")
-
-    for mod in string.gmatch(replaced, "([^';']+)") do
-        if mods[string.sub(mod, 1, -5)] != nil then
-            mods[string.sub(mod, 1, -5)][4] = string.sub(mod, -4, -1)
-        end
-    end
-    
-    return mods
-end
-
-function load_sets (mods) --> table[str, {str, bool}]
-    local sets = ini.read(replaced_sets_db, "files", "null")
-    local mod_id = ""
-    for mod in string.gmatch(sets, "([^';']+)") do
-        mod = split(mod, ":")
-        if mods[mod[1]] != nil then
-            mods[mod[1]][5] = mod[2]
-            mods[mod[1]][4] = load_set_from_id(mod[2])
-        end
-    end
-
-    return mods
-end
-
-function load_animations (mods) --> table[str, {str, bool}]
-    local anim = ini.read(anim_db, "Anim", "null")
-    local mod_id = ""
-    for mod in string.gmatch(anim, "([^';']+)") do
-        mod = split(mod, ":")
-        if mods[mod[1]] != nil then
-            mods[mod[1]][5] = mod[2]
-        end
-    end
-
-    return mods
-end
-
-function load_enabled (mods) --> table[str, {str, bool}]
-    local enabled = ini.read(enabled_db, "enabled", "nul")
-
-    for mod in string.gmatch(enabled, "([^';']+)") do
-        if mods[mod] != nil then
-            mods[mod][2] = true
-        end
-    end
-    
-    return mods
-end
-
-function save_enabled (mods) --> nil
-    enabled = ""
-    for mod, info in pairs(mods) do
-        if info[2] then
-            enabled = enabled..mod..";"
-        end
-    end
-    ini.write(enabled_db, "enabled", enabled)
-end
-
 function clear_files () --> nil
     files.delete("ms0:/"..modloader_root.."/files/")
     files.mkdir("ms0:/"..modloader_root.."/files/")
@@ -131,15 +50,17 @@ function install_mods (mods) --> nil
     save_enabled(mods)
 
     replaced = ""
+    dest_ids = ""
     code_mods = {}
     anim_mods = {}
     file_mods = {}
     set_mods  = {}
+    
     compile_anims = false
 
     for mod, info in pairs(mods) do
-        if info[2] then
-            if info[3] == "Pack" then
+        if info["enabled"] then
+            if info["type"] == "Pack" then
                 local code = ini.read("MODS/"..mod.."/mod.ini", "MOD INFO", "Code", "null")
                 if code != "null" then
                     code = split(code, ";")
@@ -154,27 +75,32 @@ function install_mods (mods) --> nil
                     end
                 end
 
-            elseif info[3] == "Code" then
+            elseif info["type"] == "Code" then
                 table.insert(code_mods, mod)
-            elseif info[3] == "EquipSET" then
+            elseif info["type"] == "EquipSET" then
                 file = split(ini.read("MODS/"..mod.."/mod.ini", "MOD INFO", "Files", "null"), ";")
-                table.insert(set_mods, {mod, info[5], split(info[4], ","), file})
-            elseif info[4] != nil then
-                replaced = replaced..mod..info[4]..";"
+                table.insert(set_mods, {mod, info["dest_id"], split(info["dest"], ","), file})
+            elseif info["dest"] != nil then
+                replaced = replaced..mod..info["dest"]..";"
                 file = ini.read("MODS/"..mod.."/mod.ini", "MOD INFO", "Files", "null")
-                copy_file(mod, file, info[4])
+                copy_file(mod, file, info["dest"])
+                
+                if info["dest_id"] then
+                    dest_ids = dest_ids..mod..":"..info["dest_id"]..";"
+                end
 
-                if info[5] != nil and ini.read("MODS/"..mod.."/mod.ini", "MOD INFO", "Animation", "null") != "null" then
-                    anim_mods[mod] = info[5]
+                if info["dest_id"] != nil and ini.read("MODS/"..mod.."/mod.ini", "MOD INFO", "Animation", "null") != "null" then
+                    anim_mods[mod] = info["dest_id"]
                     compile_anims = true
                 end
-            elseif info[4] == nil then
+            elseif info["dest"] == nil then
                 table.insert(file_mods, mod)
             end
         end
     end
 
     ini.write(replaced_db, "files", replaced)
+    ini.write(dest_ids_db, "ids", dest_ids)
     if #file_mods > 0 then
         replace_files(file_mods)
     end
@@ -190,16 +116,16 @@ function install_mods (mods) --> nil
 end
 
 function copy_sets(set_mods) --> nil
-    replaced_sets = ""
+    --replaced_sets = ""
     for _, mod in pairs(set_mods) do
-        replaced_sets = replaced_sets..mod[1]..":"..mod[2]..";"
+        --replaced_sets = replaced_sets..mod[1]..":"..mod[2]..";"
         for i=1,5 do
             if mod[3][i] != "null" and mod[4][i] != "null" then
                 copy_file(mod[1], mod[4][i], mod[3][i])
             end
         end
     end
-    ini.write(replaced_sets_db, "files", replaced_sets)
+    --ini.write(replaced_sets_db, "files", replaced_sets)
 end
 
 function replace_files (file_mods) --> nil
@@ -221,13 +147,13 @@ end
 
 function build_animations (anim_mods) --> nil
     local animations = {}
-    local mods = ""
+    --local mods = ""
     for mod, mdl_id in pairs(anim_mods) do
-        mods = mods..mod..":"..mdl_id..";"
+        --mods = mods..mod..":"..mdl_id..";"
         local animpath = "MODS/"..mod.."/"..ini.read("MODS/"..mod.."/mod.ini", "MOD INFO", "Animation", "null")
         table.insert(animations, {animpath, mdl_id})
     end
-    ini.write(anim_db, "Anim", mods)
+    --ini.write(anim_db, "Anim", mods)
     build_anim_pack(animations)
 end
 
@@ -281,8 +207,8 @@ function main () --> nil
     y = 68
     draw.fillrect(41, y-16+16*index, 220, 15, color.new(50, 232, 1, sel_alpha))
     for i=page*10+1, (page == pages-1 and mod_count % 10 != 0) and (page*10) + mod_count % 10 or (page+1)*10 do
-        screen.print(43, y, mods[mod_ids[i]][1], 0.6)--, mods[mod_ids[i]][2] and color.green or  color.red)
-        if mods[mod_ids[i]][2] then
+        screen.print(43, y, mods[mod_ids[i]]["name"], 0.6)
+        if mods[mod_ids[i]]["enabled"] then
             enabled_icon:blit(248, y+4)
         end
         y += 16
@@ -326,25 +252,7 @@ function main () --> nil
     end
 
     if buttons.cross then
-        if string.sub(mods[mod_ids[page*10+index]][3], 1, 5) == "Equip" then
-            if mods[mod_ids[page*10+index]][2] then
-                mods[mod_ids[page*10+index]][2] = false
-                mods[mod_ids[page*10+index]][4] = nil
-            else
-                if string.sub(mods[mod_ids[page*10+index]][3], -3, -1) == "SET" then
-                    dest = select_set()
-                else
-                    dest = select_replace(string.sub(mods[mod_ids[page*10+index]][3], 6, -1))
-                end
-                if dest != nil then
-                    mods[mod_ids[page*10+index]][2] = true
-                    mods[mod_ids[page*10+index]][4] = dest
-                    mods[mod_ids[page*10+index]][5] = index_s - 1
-                end
-            end
-        else --Files, Pack, Code
-            mods[mod_ids[page*10+index]][2] = not mods[mod_ids[page*10+index]][2]
-        end
+        toggle_mod(mods[mod_ids[page*10+index]])
     elseif buttons.triangle then
         install_mods(mods)
     elseif buttons.square then
