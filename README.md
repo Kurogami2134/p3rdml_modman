@@ -86,6 +86,9 @@ Possible equip types are:
 |BODY|Body/Chest armor|
 |WAIST|Waist armor|
 |LEGS|Leg armor|
+|CATHELM|Felyne Helmet|
+|CATPLATE|Felyne Chestplate|
+|CATWPN|Felyne Weapon|
 
 #### Armor Set Mods
 
