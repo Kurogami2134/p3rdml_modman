@@ -4,9 +4,13 @@ color.loadpalette()
 dofile "code/anim_compiler.lua"
 dofile "code/select_equipment.lua"
 dofile "code/mods.lua"
+dofile "code/atlas.lua"
+dofile "code/msg_box.lua"
 
 if not bg then bg=image.load("assets/mm_background.png") end
-if not enabled_icon then enabled_icon=image.load("assets/enabled.png") end
+if not atlas.image then atlas.image=image.load("assets/atlas.png") end
+
+SORT_MODES = {"Name", "Type"}
 
 buttons.interval(10, 10)
 
@@ -89,12 +93,12 @@ function install_mods (mods) --> nil
                     dest_ids = dest_ids..mod..":"..info["dest_id"]..";"
                 end
 
-                if info["dest_id"] != nil and ini.read("MODS/"..mod.."/mod.ini", "MOD INFO", "Animation", "null") != "null" then
+                if info["dest_id"] != nil and info["has_animations"] then
                     anim_mods[mod] = info["dest_id"]
                     compile_anims = true
                 end
 
-                if info["dest_id"] != nil and ini.read("MODS/"..mod.."/mod.ini", "MOD INFO", "Audio", "null") != "null" then
+                if info["dest_id"] != nil and info["has_audio"] then
                     local audio = split(ini.read("MODS/"..mod.."/mod.ini", "MOD INFO", "Audio", "null"), ";")
 
                     local header = ini.read(data_dir.."/AUDIO/"..string.sub(info["type"], 6, -1)..".ini", "header"..info["dest_id"], "null")
@@ -123,6 +127,8 @@ function install_mods (mods) --> nil
     if compile_anims then
         build_animations(anim_mods)
     end
+
+    msg_box("Mods Applied", 100, 50)
 end
 
 function copy_sets(set_mods) --> nil
@@ -187,17 +193,28 @@ function build_mods_bin (mod_list) --> nil
 end
 
 function main () --> nil
-    mods, mod_ids, mod_count = load_list()
-    last_img = nil
-    preview = nil
-    frame = 0
-    pages = math.ceil(mod_count / 10)
+    local mods, mod_ids, mod_count = load_list()
 
-    index = 1
-    page = 0
+    if mod_count == 0 then
+        msg_box("No mods found", 95, 50)
+        return
+    end
 
-    sel_alpha = 10
-    alpha_inc = true
+    local x, y
+
+    local last_img = nil
+    local preview = nil
+    local frame = 0
+    local pages = math.ceil(mod_count / 10)
+
+    local index = 1
+    local page = 0
+
+    local sel_alpha = 10
+    local alpha_inc = true
+
+    local sort_mode = 1
+    local reverse_sort = false
 
     while true do
     buttons.read()
@@ -214,12 +231,19 @@ function main () --> nil
 
     screen.print(49, 53, "Mod list", 0.6, color.yellow)
     screen.print(216, 53, (page+1).."/"..pages, 0.6)
+    
+    screen.print(23, 257, SORT_MODES[sort_mode])
+    if reverse_sort then
+        atlas:draw("sort_desc", 92, 256)
+    else
+        atlas:draw("sort_asc", 92, 256)
+    end
     y = 68
     draw.fillrect(41, y-16+16*index, 220, 15, color.new(50, 232, 1, sel_alpha))
     for i=page*10+1, (page == pages-1 and mod_count % 10 != 0) and (page*10) + mod_count % 10 or (page+1)*10 do
         screen.print(43, y, mods[mod_ids[i]]["name"], 0.6)
         if mods[mod_ids[i]]["enabled"] then
-            enabled_icon:blit(248, y+4)
+            atlas:draw("enabled_icon", 248, y+4)
         end
         y += 16
     end
@@ -239,6 +263,20 @@ function main () --> nil
         preview:blit(273, 55)
     end
 
+    if last_img == mod_ids[page*10+index] then
+        x = 284
+
+        if mods[mod_ids[page*10+index]]["has_animations"] then
+            atlas:draw("has_animations", x, 221)
+            x += 20
+        end
+
+        if mods[mod_ids[page*10+index]]["has_audio"] then
+            atlas:draw("has_audio", x, 221)
+            x += 20
+        end
+    end
+
     if buttons.down then
         index += 1
         frame = 0
@@ -246,10 +284,16 @@ function main () --> nil
         index -= 1
         frame = 0
     elseif buttons.left then
-        page = math.max(0, page-1)
+        page = page - 1
+        if page < 0 then
+            page = pages - 1
+        end
         frame = 0
     elseif buttons.right then
-        page = math.min(pages-1, page+1)
+        page = page + 1
+        if page >= pages then
+            page = 0
+        end
         frame = 0
     end
 
@@ -268,6 +312,17 @@ function main () --> nil
     elseif buttons.square then
         clear_files()
         install_mods(mods)
+    elseif buttons.r then
+        sort_mode += 1
+        if sort_mode > #SORT_MODES then
+            sort_mode = 1
+        end
+        mod_ids = sort_mods(mods, mod_ids, string.lower(SORT_MODES[sort_mode]), reverse_sort)
+        frame = 0
+    elseif buttons.l then
+        reverse_sort = not reverse_sort
+        mod_ids = sort_mods(mods, mod_ids, string.lower(SORT_MODES[sort_mode]), reverse_sort)
+        frame = 0
     elseif buttons.circle then
         break
     end

@@ -1,21 +1,64 @@
-function load_list () --> table[str, table[str], {str, bool, str}], int
-    mods = {}
-    mod_ids = {}
+if not loading_screen then loading_screen=image.load("assets/loading_screen.png") end
 
-    mod_list = files.listdirs("MODS/")
+function load_list () --> table[str, table[str, any], table[str], int
+    local mod_name, mod_type, game_ver
+    local mods = {}
+    local mod_ids = {}
+
+    screen.flip()
+    local mod_list = files.listdirs("MODS/")
     for _, dirs in ipairs(mod_list) do
         if files.exists(dirs["path"].."/mod.ini") then
             mod_name = ini.read(dirs["path"].."/mod.ini", "MOD INFO", "Name", "null")
+            
+            draw.fillrect(53, 173, #mod_ids*374/#mod_list, 35, color.new(204, 85, 0))
+            loading_screen:blit(0, 0)
+            screen.print(55, 150, "Loading "..mod_name.."...", .8, color.black)
+            screen.flip()
+
             mod_type = ini.read(dirs["path"].."/mod.ini", "MOD INFO", "Type", "null")
             game_ver = ini.read(dirs["path"].."/mod.ini", "MOD INFO", "Version", "NOHD")
             if (string.sub(mod_type, 1, 5) == "Equip") or (game_ver == game_version) then
-                mods[dirs["name"]] = {name = mod_name, enabled = false, type = mod_type, dest = nil, dest_id = nil}
+                mods[dirs["name"]] = {
+                    name = mod_name, 
+                    enabled = false, 
+                    type = mod_type, 
+                    dest = nil, 
+                    dest_id = nil,
+                    has_audio = (string.sub(mod_type, 1, 5) == "Equip") and (ini.read(dirs["path"].."/mod.ini", "MOD INFO", "Audio", "null") != "null"),
+                    has_animations = (string.sub(mod_type, 1, 5) == "Equip") and (ini.read(dirs["path"].."/mod.ini", "MOD INFO", "Animation", "null") != "null")
+                }
                 table.insert(mod_ids, dirs["name"])
             end
         end
     end
 
+    mod_ids = sort_mods(mods, mod_ids, "name", false)
+
     return load_dest_ids(load_replaced(load_enabled(mods))), mod_ids, #mod_ids
+end
+
+function sort_mods (mods, mod_ids, key, reverse) --> table[str]
+    local keys, aux, m_id, sorted_ids
+    keys = {}
+    aux = {}
+    for _, m_id in pairs(mod_ids) do
+        aux[mods[m_id][key]..mods[m_id]["name"]] = m_id
+        table.insert(keys, mods[m_id][key]..mods[m_id]["name"])
+    end
+
+    if reverse then
+        table.sort(keys, function(a, b) return a > b end)
+    else
+        table.sort(keys)
+    end
+
+    sorted_ids = {}
+    for _, v in pairs(keys) do
+        table.insert(sorted_ids, aux[v])
+    end
+    
+    return sorted_ids
 end
 
 function load_dest_ids (mods) --> table[str, {str, bool}]
