@@ -52,6 +52,16 @@ Another example, replacing multiple files.
     Target="FILEID;FILEID2"
     Type="File"
 
+### Patch Mods
+
+Patch mods are basically [code mods](#code-mods) that are loaded specifically after another file, (most likely) with the intention to patch said file.
+
+    [MOD INFO]
+    Name="MOD NAME"
+    Files="PATCHFILE"
+    Target="FILEID"
+    Type="Patch"
+
 ### Equipment Replacement
 
 Equipment replacement mods must reference a single file, and do not use a target id. When enabling the mod, the user will choose which equipment piece to replace.

@@ -53,14 +53,18 @@ end
 function install_mods (mods) --> nil
     save_enabled(mods)
 
-    replaced = ""
-    dest_ids = ""
-    code_mods = {}
-    anim_mods = {}
-    file_mods = {}
-    set_mods  = {}
+    local replaced = ""
+    local dest_ids = ""
+    local code_mods  = {}
+    local anim_mods  = {}
+    local file_mods  = {}
+    local set_mods   = {}
+    local patch_mods = {}
     
-    compile_anims = false
+    local do_build_patches = false
+    local compile_anims = false
+
+    local mod, info
 
     for mod, info in pairs(mods) do
         if info["enabled"] then
@@ -81,6 +85,14 @@ function install_mods (mods) --> nil
 
             elseif info["type"] == "Code" then
                 table.insert(code_mods, mod)
+            elseif info["type"] == "Patch" then
+                do_build_patches = true
+                target = ini.read("MODS/"..mod.."/mod.ini", "MOD INFO", "Target", "null")
+                file = ini.read("MODS/"..mod.."/mod.ini", "MOD INFO", "Files", "null")
+                if patch_mods[target] == nil then
+                    patch_mods[target] = {}
+                end
+                table.insert(patch_mods[target], {mod, file})
             elseif info["type"] == "EquipSET" then
                 file = split(ini.read("MODS/"..mod.."/mod.ini", "MOD INFO", "Files", "null"), ";")
                 table.insert(set_mods, {mod, info["dest_id"], split(info["dest"], ","), file})
@@ -115,6 +127,9 @@ function install_mods (mods) --> nil
 
     ini.write(replaced_db, "files", replaced)
     ini.write(dest_ids_db, "ids", dest_ids)
+    if do_build_patches then
+        build_patches(patch_mods)
+    end
     if #file_mods > 0 then
         replace_files(file_mods)
     end
@@ -129,6 +144,23 @@ function install_mods (mods) --> nil
     end
 
     msg_box("Mods Applied", 100, 50)
+end
+
+function build_patches (patch_mods)  --> nil
+    local target, patch, file, patches, data
+    for target, patches in pairs(patch_mods) do
+        local data = ""
+        for _, patch in pairs(patches) do
+            file = io.open("MODS/"..patch[1].."/"..patch[2], "rb")
+            data = data..file:read("*all")
+            file:close()
+        end
+        
+        file = io.open("ms0:/"..modloader_root.."/files/"..target.."P", "wb")
+        file:write(data)
+        file:write(int_to_bytes(-1)..int_to_bytes(0))
+        file:close()
+    end
 end
 
 function copy_sets(set_mods) --> nil
