@@ -5,61 +5,33 @@ function load_list () --> table[str, table[str, any], table[str], int
     local mods = {}
     local mod_ids = {}
 
-    local render, process, do_draw
-    mod_name = ""
-
+    loading_screen:blit(0, 0)
     screen.flip()
-
-    do_draw = true
 
     local mod_list = files.listdirs("MODS/")
 
-    render = coroutine.create(function ()
-        while do_draw do
-            draw.fillrect(53, 173, #mod_ids*374/#mod_list, 35, color.new(204, 85, 0))
-            loading_screen:blit(0, 0)
-            screen.print(55, 150, "Loading "..mod_name.."...", .8, color.black)
-            screen.flip()
-            coroutine.yield()
-        end
-    end)
-
-    process = coroutine.create(function ()
-        for _, dirs in ipairs(mod_list) do
-            coroutine.yield()
-            if files.exists(dirs["path"].."/mod.ini") then
-                mod_name = ini.read(dirs["path"].."/mod.ini", "MOD INFO", "Name", "null")
-                coroutine.yield()
-                mod_type = ini.read(dirs["path"].."/mod.ini", "MOD INFO", "Type", "null")
-                coroutine.yield()
-                game_ver = ini.read(dirs["path"].."/mod.ini", "MOD INFO", "Version", "NOHD")
-                coroutine.yield()
-                local type5f = (string.sub(mod_type, 1, 5))
-                local is_equip = type5f == "Equip"
-                if is_equip or (game_ver == game_version) then
-                    local has_audio = is_equip and (ini.read(dirs["path"].."/mod.ini", "MOD INFO", "Audio", "null") != "null")
-                    local has_animations = is_equip and (ini.read(dirs["path"].."/mod.ini", "MOD INFO", "Animation", "null") != "null")
-                    coroutine.yield()
-                    mods[dirs["name"]] = {
-                        name = mod_name, 
-                        enabled = false, 
-                        type = mod_type, 
-                        dest = nil, 
-                        dest_id = nil,
-                        has_audio = has_audio,
-                        has_animations = has_animations
-                    }
-                    table.insert(mod_ids, dirs["name"])
-                end
-                coroutine.yield()
+    for _, dirs in ipairs(mod_list) do
+        if files.exists(dirs["path"].."/mod.ini") then
+            mod_name = ini.read(dirs["path"].."/mod.ini", "MOD INFO", "Name", "null")
+            mod_type = ini.read(dirs["path"].."/mod.ini", "MOD INFO", "Type", "null")
+            game_ver = ini.read(dirs["path"].."/mod.ini", "MOD INFO", "Version", "NOHD")
+            local type5f = (string.sub(mod_type, 1, 5))
+            local is_equip = type5f == "Equip"
+            if is_equip or (game_ver == game_version) then
+                local has_audio = is_equip and (ini.read(dirs["path"].."/mod.ini", "MOD INFO", "Audio", "null") != "null")
+                local has_animations = is_equip and (ini.read(dirs["path"].."/mod.ini", "MOD INFO", "Animation", "null") != "null")
+                mods[dirs["name"]] = {
+                    name = mod_name, 
+                    enabled = false, 
+                    type = mod_type, 
+                    dest = nil, 
+                    dest_id = nil,
+                    has_audio = has_audio,
+                    has_animations = has_animations
+                }
+                table.insert(mod_ids, dirs["name"])
             end
         end
-        do_draw = false
-    end)
-
-    while coroutine.status(process) != "dead" do
-        coroutine.resume(process)
-        coroutine.resume(render)
     end
 
     mod_ids = sort_mods(mods, mod_ids, "name", false)
@@ -98,7 +70,7 @@ function load_dest_ids (mods) --> table[str, {str, bool}]
         local mod_id, dest_id = mod_info[1], mod_info[2]
         if mods[mod_id] != nil then
             mods[mod_id]["dest_id"] = dest_id
-            if mod["type"] == "EquipSET" then
+            if mods[mod_id]["type"] == "EquipSET" then
                 mods[mod_id]["dest"] = load_set_from_id(dest_id)
             end
         end

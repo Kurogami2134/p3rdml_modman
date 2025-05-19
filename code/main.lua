@@ -94,6 +94,7 @@ function install_mods (mods) --> nil
                 end
                 table.insert(patch_mods[target], {mod, file})
             elseif info["type"] == "EquipSET" then
+                dest_ids = dest_ids..mod..":"..info["dest_id"]..";"
                 file = split(ini.read("MODS/"..mod.."/mod.ini", "MOD INFO", "Files", "null"), ";")
                 table.insert(set_mods, {mod, info["dest_id"], split(info["dest"], ","), file})
             elseif info["dest"] != nil then
