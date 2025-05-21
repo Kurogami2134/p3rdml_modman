@@ -50,6 +50,30 @@ function copy_file (mod, origin, dest) --> nil
     files.rename("ms0:/"..modloader_root.."/files/"..files.nopath(origin), "ms0:/"..modloader_root.."/files/"..dest)
 end
 
+function get_target(mod_id) --> str
+    local target = ini.read("MODS/"..mod_id.."/mod.ini", "MOD INFO", "Target", "null")
+    if game_version == "HD" then
+        local target_hd = ini.read("MODS/"..mod_id.."/mod.ini", "MOD INFO", "TargetHD", "null")
+        if target_hd != "null" then
+            target = target_hd
+        end
+    end
+
+    return target
+end
+
+function get_mod_files(mod_id) --> str
+    local file = ini.read("MODS/"..mod_id.."/mod.ini", "MOD INFO", "Files", "null")
+    if game_version == "HD" then
+        local file_hd = ini.read("MODS/"..mod_id.."/mod.ini", "MOD INFO", "FilesHD", "null")
+        if file_hd != "null" then
+            file = file_hd
+        end
+    end
+
+    return file
+end
+
 function install_mods (mods) --> nil
     save_enabled(mods)
 
@@ -68,38 +92,24 @@ function install_mods (mods) --> nil
 
     for mod, info in pairs(mods) do
         if info["enabled"] then
-            if info["type"] == "Pack" then
-                local code = ini.read("MODS/"..mod.."/mod.ini", "MOD INFO", "Code", "null")
-                if code != "null" then
-                    code = split(code, ";")
-                    for _, child in pairs(code) do
-                        table.insert(code_mods, mod.."/"..child)
-                    end
-                end
-                local file = ini.read("MODS/"..mod.."/mod.ini", "MOD INFO", "File", "null")
-                if file != null then
-                    for _, mod in split(file, ";") do
-                        table.insert(file_mods, mod)
-                    end
-                end
-
-            elseif info["type"] == "Code" then
+            if info["type"] == "Code" then
                 table.insert(code_mods, mod)
             elseif info["type"] == "Patch" then
                 do_build_patches = true
-                target = ini.read("MODS/"..mod.."/mod.ini", "MOD INFO", "Target", "null")
-                file = ini.read("MODS/"..mod.."/mod.ini", "MOD INFO", "Files", "null")
+                target = get_target(mod)
+                file = get_mod_files(mod)
+
                 if patch_mods[target] == nil then
                     patch_mods[target] = {}
                 end
                 table.insert(patch_mods[target], {mod, file})
             elseif info["type"] == "EquipSET" then
                 dest_ids = dest_ids..mod..":"..info["dest_id"]..";"
-                file = split(ini.read("MODS/"..mod.."/mod.ini", "MOD INFO", "Files", "null"), ";")
+                file = split(get_mod_files(mod), ";")
                 table.insert(set_mods, {mod, info["dest_id"], split(info["dest"], ","), file})
             elseif info["dest"] != nil then
                 replaced = replaced..mod..info["dest"]..";"
-                file = ini.read("MODS/"..mod.."/mod.ini", "MOD INFO", "Files", "null")
+                file = get_mod_files(mod)
                 copy_file(mod, file, info["dest"])
                 
                 if info["dest_id"] then
@@ -178,13 +188,18 @@ function copy_sets(set_mods) --> nil
 end
 
 function replace_files (file_mods) --> nil
+    local target, files
     for _, mod in pairs(file_mods) do
         local targets = {}
         local replacements = {}
-        for file in string.gmatch(ini.read("MODS/"..mod.."/mod.ini", "MOD INFO", "Target", "null"), "([^;]+)") do
+
+        target = get_target(mod)
+        files = get_mod_files(mod)
+
+        for file in string.gmatch(target, "([^;]+)") do
             table.insert(targets, file)
         end
-        for file in string.gmatch(ini.read("MODS/"..mod.."/mod.ini", "MOD INFO", "Files", "null"), "([^;]+)") do
+        for file in string.gmatch(files, "([^;]+)") do
             table.insert(replacements, file)
         end
         
@@ -207,14 +222,16 @@ function build_animations (anim_mods) --> nil
 end
 
 function build_mods_bin (mod_list) --> nil
+    local mod_files, file_name
     file = io.open("ms0:/"..modloader_root.."/mods.bin", "w")
     io.output(file)
 
     for _, mod in pairs(mod_list) do
-        mod_files = ini.read("MODS/"..mod.."/mod.ini", "MOD INFO", "Files", "null")
+        mod_files = get_mod_files(mod)
         for mod_file in string.gmatch(mod_files, "([^';']+)") do
-            io.write(string.char(string.len(mod_file)+2))
-            io.write("/"..mod_file..string.char(0))
+            file_name = files.nopath(mod_file) 
+            io.write(string.char(string.len(file_name)+2))
+            io.write("/"..file_name..string.char(0))
 
             file_copy("MODS/"..mod.."/"..mod_file, "ms0:/"..modloader_root.."/mods")
         end
@@ -339,7 +356,25 @@ function main () --> nil
     end
 
     if buttons.cross then
-        toggle_mod(mods[mod_ids[page*10+index]])
+        local depends_met = true
+        if not mods[mod_ids[page*10+index]]["enabled"] and mods[mod_ids[page*10+index]]["depends"] != "null" then
+            for mod in string.gmatch(mods[mod_ids[page*10+index]]["depends"], "([^';']+)") do
+                if mods[mod] then
+                    if not mods[mod]["enabled"] then
+                        toggle_mod(mods[mod])
+                        msg_box("Enabled Dependencies", 10, 10, mods[mod]["name"], 10, 40)
+                    end
+                else
+                    depends_met = false
+                    break
+                end
+            end
+            if depends_met then
+                toggle_mod(mods[mod_ids[page*10+index]])
+            end
+        else
+            toggle_mod(mods[mod_ids[page*10+index]])
+        end
     elseif buttons.triangle then
         install_mods(mods)
     elseif buttons.square then

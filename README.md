@@ -14,7 +14,7 @@ Mods are stored as folders, containing a `mod.ini` file, and any other relevant 
 
 If 'preview.png' exists within the mod's folder, it will be displayed in the mod list. This image must be 166x166 pixels in size.
 
-The mod manager currently supports three types of mods.
+The mod manager currently supports five types of mods.
 
 * At least one example of each type of mod is included in the release.
 
@@ -139,16 +139,39 @@ Weapon mods can also include an `Audio` key referencing two files to use for sou
 
 * In a few specific cases, replacing a weapons sound effects, will also replace another's. These cases seem to be few and far apart so it shouldn't pose any real issue.
 
-### Mod packs
+### Extra
 
-Mod packs can contain any number of mods inside of them and must be declared as follows:
+Any mod may also contain keys to state other mods the mod depends on, as well as what version of the game is supported by the mod.
+
+#### Versions
+
+Adding the `Version` key allows the mod manager to correctly load only mods that can be used for the selected version.
+
+    Version=version
+
+`version` must be either one of the following.
+
+|Value|Game Version|
+|-|-|
+|NOHD|Only supports PSP version.|
+|HD|Only supports HD version.|
+|BOTH|Supports both HD and PSP version.|
+
+* Equipment mods, be it sets, armor parts, or weapons, can be loaded regardless of version, and specifying one will have no effect.
+
+* Mods using `BOTH` as their version may include `FilesHD` and `TargetHD` as keys specifying files relating to the hd version only.
+
+* If the `Version` key is omitted the mod manager will asume it's `NOHD`
+
+#### Dependencies
+
+By adding the `Depends` key, any mod may specify other mods they depend on, by listing their ids. As an example, a weapon mod that uses custom animations would depend on `File Replacer` and the `Weapon Animation Expansion` and it'd be set up as follows:
 
     [MOD INFO]
-    Name="MOD PACK"
-    Code="mod1;mod2"
-    File="mod3;mod4"
-    Type="Pack"
+    Name="MOD NAME"
+    Files="NEWFILE"
+    Type="EquipTYPE"
+    Animation="modname.json"
+    Depedns="file_replacer;wpn_anim_expansion"
 
-Mod packs currently can contain [Code](#code-mods) mods or [specific file replacement](#specific-file-replacement) mods.
-
-A `;` separated list of Code mods must be provided with the `Code` key, and a `;` separated list of File mods with the `File` key.
+Enabling a mod will automatically enable it's dependencies if necessary. In the current version of the system, however, disabling dependencies will not disable the mods that need them.

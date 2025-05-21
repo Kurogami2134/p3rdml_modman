@@ -12,12 +12,13 @@ function load_list () --> table[str, table[str, any], table[str], int
 
     for _, dirs in ipairs(mod_list) do
         if files.exists(dirs["path"].."/mod.ini") then
-            mod_name = ini.read(dirs["path"].."/mod.ini", "MOD INFO", "Name", "null")
-            mod_type = ini.read(dirs["path"].."/mod.ini", "MOD INFO", "Type", "null")
-            game_ver = ini.read(dirs["path"].."/mod.ini", "MOD INFO", "Version", "NOHD")
+            local mod_name = ini.read(dirs["path"].."/mod.ini", "MOD INFO", "Name", "null")
+            local mod_type = ini.read(dirs["path"].."/mod.ini", "MOD INFO", "Type", "null")
+            local game_ver = ini.read(dirs["path"].."/mod.ini", "MOD INFO", "Version", "NOHD")
+            local dependencies  = ini.read(dirs["path"].."/mod.ini", "MOD INFO", "Depends", "null")
             local type5f = (string.sub(mod_type, 1, 5))
             local is_equip = type5f == "Equip"
-            if is_equip or (game_ver == game_version) then
+            if is_equip or (game_ver == "BOTH" or game_ver == game_version) then
                 local has_audio = is_equip and (ini.read(dirs["path"].."/mod.ini", "MOD INFO", "Audio", "null") != "null")
                 local has_animations = is_equip and (ini.read(dirs["path"].."/mod.ini", "MOD INFO", "Animation", "null") != "null")
                 mods[dirs["name"]] = {
@@ -27,7 +28,8 @@ function load_list () --> table[str, table[str, any], table[str], int
                     dest = nil, 
                     dest_id = nil,
                     has_audio = has_audio,
-                    has_animations = has_animations
+                    has_animations = has_animations,
+                    depends = dependencies
                 }
                 table.insert(mod_ids, dirs["name"])
             end
