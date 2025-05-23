@@ -356,19 +356,25 @@ function main () --> nil
     end
 
     if buttons.cross then
+        local dep_name, deps = "", ""
+        local enabled_deps = {}
         local depends_met = true
         if not mods[mod_ids[page*10+index]]["enabled"] and mods[mod_ids[page*10+index]]["depends"] != "null" then
             for mod in string.gmatch(mods[mod_ids[page*10+index]]["depends"], "([^';']+)") do
                 if mods[mod] then
                     if not mods[mod]["enabled"] then
                         toggle_mod(mods[mod])
-                        msg_box("Enabled Dependencies", 10, 10, mods[mod]["name"], 10, 40)
+                        table.insert(enabled_deps, mods[mod]["name"])
                     end
                 else
                     depends_met = false
                     break
                 end
             end
+            for _, dep_name in pairs(enabled_deps) do
+                deps = deps.."\n"..dep_name
+            end
+            msg_box("Enabled Dependencies", 10, 10, deps, 10, 40)
             if depends_met then
                 toggle_mod(mods[mod_ids[page*10+index]])
             end
