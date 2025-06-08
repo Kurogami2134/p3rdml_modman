@@ -15,6 +15,17 @@ function load_equipment (eq_type) --> table[int], table[str], int
     return file_list, names, count
 end
 
+function load_cat_set_list() --> table[str], int
+    names = {}
+    count = 0
+    sets = ini.read(data_dir.."/EQUIPMENT_LIST/CATSET.ini", "sets", "")
+    for set in string.gmatch(sets, "([^,]+)") do
+        table.insert(names, set)
+        count += 1
+    end
+    return names, count
+end
+
 function load_set_list() --> table[str], int
     names = {}
     count = 0
@@ -100,6 +111,15 @@ function select_replace (equip_type) --> nil
     end
 end
 
+function load_cat_set (name) --> str
+    return ini.read(data_dir.."/EQUIPMENT_LIST/CATSET.ini", name, "")
+end
+
+function load_cat_set_from_id (id) --> str
+    local names, count = load_cat_set_list()
+    return load_cat_set(names[id+1])
+end
+
 function load_set_from_id (id) --> str
     local names, count = load_set_list()
     return load_set(names[id+1])
@@ -109,8 +129,13 @@ function load_set (name) --> str
     return ini.read(data_dir.."/EQUIPMENT_LIST/SET.ini", name, "")
 end
 
-function select_set () --> nil
-    local set_names, set_count = load_set_list()
+function select_set (cat) --> nil
+    local set_names, set_count
+    if cat then
+        set_names, set_count = load_cat_set_list()
+    else
+        set_names, set_count = load_set_list()
+    end
 
     index_s, y_s = 1, 17
 
@@ -148,7 +173,9 @@ function select_set () --> nil
         index_s= 1
     end
 
-    if buttons.cross then
+    if buttons.cross and cat then
+        return load_cat_set(set_names[index_s])
+    elseif buttons.cross then
         return load_set(set_names[index_s])
     elseif buttons.circle then
         return nil

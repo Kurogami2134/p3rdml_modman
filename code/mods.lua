@@ -74,6 +74,8 @@ function load_dest_ids (mods) --> table[str, {str, bool}]
             mods[mod_id]["dest_id"] = dest_id
             if mods[mod_id]["type"] == "EquipSET" then
                 mods[mod_id]["dest"] = load_set_from_id(dest_id)
+            elseif mods[mod_id]["type"] == "EquipCATSET" then
+                mods[mod_id]["dest"] = load_cat_set_from_id(dest_id)
             end
         end
     end
@@ -122,8 +124,10 @@ function toggle_mod(mod) --> nil
             mod["dest"] = nil
             mod["dest_id"] = nil
         else
-            if string.sub(mod["type"], -3, -1) == "SET" then
-                dest = select_set()
+            if string.sub(mod["type"], -6, -1) == "CATSET" then
+                dest = select_set(true)
+            elseif string.sub(mod["type"], -3, -1) == "SET" then
+                dest = select_set(false)
             else
                 dest = select_replace(string.sub(mod["type"], 6, -1))
             end

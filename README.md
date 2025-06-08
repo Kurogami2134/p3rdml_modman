@@ -115,7 +115,19 @@ In case an armor set doesn't include one or more of those pieces, a `null` must 
     Name="MOD NAME"
     Files="HEAD;null;BODY;WAIST;null"
     Type="EquipSET"
-    Anim="modname.json"
+
+#### Cat Armor Set Mods
+
+Cat Armor sets can be distributed as a single mod by setting it's type to `EquipCATSET` and `Files` to a set of 2 `;` separated files indicating each piece in the following order:
+    - Helm
+    - Plate
+
+In case an cat armor set doesn't include one or more of those pieces, a `null` must be in it's place.
+
+    [MOD INFO]
+    Name="MOD NAME"
+    Files="HELM;null"
+    Type="EquipCATSET"
 
 #### Weapon animations
 

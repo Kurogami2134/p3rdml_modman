@@ -83,6 +83,7 @@ function install_mods (mods) --> nil
     local anim_mods  = {}
     local file_mods  = {}
     local set_mods   = {}
+    local cat_set_mods   = {}
     local patch_mods = {}
     
     local do_build_patches = false
@@ -107,6 +108,10 @@ function install_mods (mods) --> nil
                 dest_ids = dest_ids..mod..":"..info["dest_id"]..";"
                 file = split(get_mod_files(mod), ";")
                 table.insert(set_mods, {mod, info["dest_id"], split(info["dest"], ","), file})
+            elseif info["type"] == "EquipCATSET" then
+                dest_ids = dest_ids..mod..":"..info["dest_id"]..";"
+                file = split(get_mod_files(mod), ";")
+                table.insert(cat_set_mods, {mod, info["dest_id"], split(info["dest"], ","), file})
             elseif info["dest"] != nil then
                 replaced = replaced..mod..info["dest"]..";"
                 file = get_mod_files(mod)
@@ -147,6 +152,9 @@ function install_mods (mods) --> nil
     if #set_mods > 0 then
         copy_sets(set_mods)
     end
+    if #cat_set_mods > 0 then
+        copy_cat_sets(cat_set_mods)
+    end
     if #code_mods > 0 then
         build_mods_bin(code_mods)
     end
@@ -175,16 +183,27 @@ function build_patches (patch_mods)  --> nil
 end
 
 function copy_sets(set_mods) --> nil
-    --replaced_sets = ""
     for _, mod in pairs(set_mods) do
-        --replaced_sets = replaced_sets..mod[1]..":"..mod[2]..";"
         for i=1,5 do
             if mod[3][i] != "null" and mod[4][i] != "null" then
                 copy_file(mod[1], mod[4][i], mod[3][i])
             end
         end
     end
-    --ini.write(replaced_sets_db, "files", replaced_sets)
+end
+
+function copy_cat_sets(set_mods) --> nil
+    for _, mod in pairs(set_mods) do
+        for i=1,2 do
+            if not mod[3][i] then
+                debug_msg = "huh?"
+                dofile"debug.lua"
+            end
+            if mod[3][i] != "null" and mod[4][i] != "null" then
+                copy_file(mod[1], mod[4][i], mod[3][i])
+            end
+        end
+    end
 end
 
 function replace_files (file_mods) --> nil
