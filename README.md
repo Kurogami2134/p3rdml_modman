@@ -184,6 +184,6 @@ By adding the `Depends` key, any mod may specify other mods they depend on, by l
     Files="NEWFILE"
     Type="EquipTYPE"
     Animation="modname.json"
-    Depedns="file_replacer;wpn_anim_expansion"
+    Depends="file_replacer;wpn_anim_expansion"
 
 Enabling a mod will automatically enable it's dependencies if necessary. In the current version of the system, however, disabling dependencies will not disable the mods that need them.
