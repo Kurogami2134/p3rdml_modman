@@ -393,7 +393,9 @@ function main () --> nil
             for _, dep_name in pairs(enabled_deps) do
                 deps = deps.."\n"..dep_name
             end
-            msg_box("Enabled Dependencies", 10, 10, deps, 10, 40)
+            if deps != "" then
+                msg_box("Enabled Dependencies", 10, 10, deps, 10, 40)
+            end
             if depends_met then
                 toggle_mod(mods[mod_ids[page*10+index]])
             end
