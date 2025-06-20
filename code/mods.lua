@@ -21,7 +21,7 @@ function load_list () --> table[str, table[str, any], table[str], int
             if is_equip or (game_ver == "BOTH" or game_ver == game_version) then
                 local has_audio = is_equip and (ini.read(dirs["path"].."/mod.ini", "MOD INFO", "Audio", "null") != "null")
                 local has_animations = is_equip and (ini.read(dirs["path"].."/mod.ini", "MOD INFO", "Animation", "null") != "null")
-                mods[dirs["name"]] = {
+                mods[string.lower(dirs["name"])] = {
                     name = mod_name, 
                     enabled = false, 
                     type = mod_type, 
@@ -31,7 +31,7 @@ function load_list () --> table[str, table[str, any], table[str], int
                     has_animations = has_animations,
                     depends = dependencies
                 }
-                table.insert(mod_ids, dirs["name"])
+                table.insert(mod_ids, string.lower(dirs["name"]))
             end
         end
     end
