@@ -97,13 +97,15 @@ function install_mods (mods) --> nil
                 table.insert(code_mods, mod)
             elseif info["type"] == "Patch" then
                 do_build_patches = true
-                target = get_target(mod)
-                file = get_mod_files(mod)
 
-                if patch_mods[target] == nil then
-                    patch_mods[target] = {}
+                file = split(get_mod_files(mod), ";")
+                target = split(get_target(mod), ";")
+                for i=1,#file do
+                    if patch_mods[target[i]] == nil then
+                        patch_mods[target[i]] = {}
+                    end
+                    table.insert(patch_mods[target[i]], {mod, file[i]})
                 end
-                table.insert(patch_mods[target], {mod, file})
             elseif info["type"] == "EquipSET" then
                 dest_ids = dest_ids..mod..":"..info["dest_id"]..";"
                 file = split(get_mod_files(mod), ";")
