@@ -4,11 +4,9 @@ color.loadpalette()
 dofile "code/anim_compiler.lua"
 dofile "code/select_equipment.lua"
 dofile "code/mods.lua"
-dofile "code/atlas.lua"
 dofile "code/msg_box.lua"
 
 if not bg then bg=image.load("assets/mm_background.png") end
-if not atlas.image then atlas.image=image.load("assets/atlas.png") end
 
 SORT_MODES = {"Name", "Type"}
 
@@ -243,24 +241,22 @@ function build_animations (anim_mods) --> nil
 end
 
 function build_mods_bin (mod_list) --> nil
-    local mod_files, file_name
+    local mod_files, file_name, file
     file = io.open("ms0:/"..modloader_root.."/mods.bin", "w")
-    io.output(file)
 
     for _, mod in pairs(mod_list) do
         mod_files = get_mod_files(mod)
         for mod_file in string.gmatch(mod_files, "([^';']+)") do
             file_name = files.nopath(mod_file) 
-            io.write(string.char(string.len(file_name)+2))
-            io.write("/"..file_name..string.char(0))
+            file:write(string.char(string.len(file_name)+2))
+            file:write("/"..file_name..string.char(0))
 
             file_copy("MODS/"..mod.."/"..mod_file, "ms0:/"..modloader_root.."/mods")
         end
     end
 
-    io.write(string.char(255))
-
-    io.close(file)
+    file:write(string.char(255))
+    file:close()
 end
 
 function main () --> nil
@@ -302,6 +298,14 @@ function main () --> nil
 
     screen.print(49, 53, "Mod list", 0.6, color.yellow)
     screen.print(216, 53, (page+1).."/"..pages, 0.6)
+
+    if circle_to_confirm then
+        atlas:draw("circle", 332, 257)
+        atlas:draw("cross", 433, 257)
+    else
+        atlas:draw("cross", 332, 257)
+        atlas:draw("circle", 433, 257)
+    end
     
     screen.print(23, 257, SORT_MODES[sort_mode])
     if reverse_sort then
@@ -376,7 +380,7 @@ function main () --> nil
         index = 1
     end
 
-    if buttons.cross then
+    if (circle_to_confirm and buttons.circle) or (not circle_to_confirm and buttons.cross) then -- confirm button
         local dep_name, deps = "", ""
         local enabled_deps = {}
         local depends_met = true
@@ -420,7 +424,7 @@ function main () --> nil
         reverse_sort = not reverse_sort
         mod_ids = sort_mods(mods, mod_ids, string.lower(SORT_MODES[sort_mode]), reverse_sort)
         frame = 0
-    elseif buttons.circle then
+    elseif (circle_to_confirm and buttons.cross) or (not circle_to_confirm and buttons.circle) then -- cancel button
         break
     end
 

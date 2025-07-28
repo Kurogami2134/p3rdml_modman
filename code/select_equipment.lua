@@ -80,8 +80,16 @@ function select_replace (equip_type) --> nil
         y_s = y_s + 12
     end
 
-    screen.print(105, 240, "O To exit", 0.6)
-    screen.print(25, 240, "X To Select", 0.6)
+    if circle_to_confirm then
+        atlas:draw("circle", 30, 241)
+        atlas:draw("cross", 110, 241)
+    else
+        atlas:draw("cross", 30, 241)
+        atlas:draw("circle", 110, 241)
+    end
+
+    screen.print(125, 240, "To exit", 0.6)
+    screen.print(45, 240, "To Select", 0.6)
 
     if buttons.down then
         index_s += 1
@@ -101,9 +109,9 @@ function select_replace (equip_type) --> nil
         index_s = 1
     end
 
-    if buttons.cross then
+    if (circle_to_confirm and buttons.circle) or (not circle_to_confirm and buttons.cross) then -- confirm button
         return parts[index_s]
-    elseif buttons.circle then
+    elseif (circle_to_confirm and buttons.cross) or (not circle_to_confirm and buttons.circle) then -- cancel button
         return nil
     end
 
@@ -152,8 +160,16 @@ function select_set (cat) --> nil
         y_s = y_s + 12
     end
 
-    screen.print(105, 240, "O To exit", 0.6)
-    screen.print(25, 240, "X To Select", 0.6)
+    if circle_to_confirm then
+        atlas:draw("circle", 30, 241)
+        atlas:draw("cross", 110, 241)
+    else
+        atlas:draw("cross", 30, 241)
+        atlas:draw("circle", 110, 241)
+    end
+
+    screen.print(125, 240, "To exit", 0.6)
+    screen.print(45, 240, "To Select", 0.6)
 
     if buttons.down then
         index_s += 1
@@ -173,11 +189,11 @@ function select_set (cat) --> nil
         index_s= 1
     end
 
-    if buttons.cross and cat then
+    if (circle_to_confirm and buttons.circle) or (not circle_to_confirm and buttons.cross) and cat then -- confirm and cat
         return load_cat_set(set_names[index_s])
-    elseif buttons.cross then
+    elseif (circle_to_confirm and buttons.circle) or (not circle_to_confirm and buttons.cross) then -- confirm button
         return load_set(set_names[index_s])
-    elseif buttons.circle then
+    elseif (circle_to_confirm and buttons.cross) or (not circle_to_confirm and buttons.circle) then -- cancel button
         return nil
     end
 
