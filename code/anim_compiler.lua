@@ -36,9 +36,10 @@ function load_anim (path, mdl_id, addr) --> bytes
 
     local mdl_addr = #data["model"] > 0 and addr or 0
     local tex_addr = #data["texture"] > 0 and addr + 0x1C*#data["model"] or 0
+    local resting_pos = data["resting_pos"] and data["resting_pos"] or 0
 
     local bin = string.char(WPN_TYPES[data["type"]:upper()]).."\00"
-    bin = bin..string.char(mdl_id)..string.char(#data["model"])..string.char(#data["texture"]).."\00\00\00"
+    bin = bin..string.char(mdl_id)..string.char(#data["model"])..string.char(#data["texture"]).."\00"..string.char(resting_pos).."\00"
     bin = bin..int_to_bytes(mdl_addr)..int_to_bytes(tex_addr).."\00\00\00\00"
 
     entry = bin

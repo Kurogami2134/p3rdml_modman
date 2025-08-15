@@ -6,7 +6,8 @@
         "LUMA": 32,
         "ALPHA": 35,
         "RGB": 36,
-        "VISIBLE": 41
+        "VISIBLE": 41,
+        "VISIBLE(WEIRD)": 34
     },
     "MODEL": {
         "ROTATE_X": 6,
@@ -15,6 +16,9 @@
         "ROTATION_X": 0,
         "ROTATION_Y": 1,
         "ROTATION_Z": 2,
+        "ROTATION_OSC_X": 3,
+        "ROTATION_OSC_Y": 4,
+        "ROTATION_OSC_Z": 5,
         "SCALE": 14,
         "SCALE_XY": 12,
         "SCALE_XZ": 9,
@@ -22,6 +26,7 @@
         "SCALE_Z": 11,
         "TRANSLATE_Y": 15,
         "TRANSLATE_X": 16,
-        "TRANSLATE_Z": 17
+        "TRANSLATE_Z": 17,
+        "RECITAL": 18
     }
 }
