@@ -174,7 +174,7 @@ function select_replace (equip_type) --> nil
     local max = set_count < 15+index_s and set_count or 15+index_s
     y_s = 40
     screen.print(25, y_s, ">", 0.6, color.black)
-    screen.print(12, 256, index_s.."/"..set_count, 0.6, color.black)
+    screen.print(12, 257, index_s.."/"..set_count, 0.6, color.white)
     for i=index_s, max do
         screen.print(35, y_s, set_names[i], 0.6, color.black)
         y_s = y_s + 12

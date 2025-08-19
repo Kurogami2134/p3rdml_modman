@@ -364,12 +364,14 @@ function main () --> nil
             page = pages - 1
         end
         frame = 0
+        index = math.min(((page == pages-1 and mod_count % 10 != 0) and mod_count % 10 or 10), index)
     elseif buttons.right then
         page = page + 1
         if page >= pages then
             page = 0
         end
         frame = 0
+        index = math.min(((page == pages-1 and mod_count % 10 != 0) and mod_count % 10 or 10), index)
     end
 
     if index < 1 then
