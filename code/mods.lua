@@ -73,7 +73,7 @@ function load_dest_ids (mods) --> table[str, {str, bool}]
         if mods[mod_id] != nil then
             mods[mod_id]["dest_id"] = dest_id
             if mods[mod_id]["type"] == "EquipSET" then
-                mods[mod_id]["dest"] = load_set_from_id(dest_id)
+                mods[mod_id]["dest"] = load_set(dest_id)
             elseif mods[mod_id]["type"] == "EquipCATSET" then
                 mods[mod_id]["dest"] = load_cat_set_from_id(dest_id)
             end
@@ -118,23 +118,18 @@ function save_enabled (mods) --> nil
 end
 
 function toggle_mod(mod) --> nil
+    local dest, dest_id
     if string.sub(mod["type"], 1, 5) == "Equip" then
         if mod["enabled"] then
             mod["enabled"] = false
             mod["dest"] = nil
             mod["dest_id"] = nil
         else
-            if string.sub(mod["type"], -6, -1) == "CATSET" then
-                dest = select_set(true)
-            elseif string.sub(mod["type"], -3, -1) == "SET" then
-                dest = select_set(false)
-            else
-                dest = select_replace(string.sub(mod["type"], 6, -1))
-            end
+            dest, dest_id = select_replace(string.sub(mod["type"], 6, -1))
             if dest != nil then
                 mod["enabled"] = true
                 mod["dest"] = dest
-                mod["dest_id"] = index_s - 1
+                mod["dest_id"] = dest_id
             end
         end
     else --Files, Pack, Code

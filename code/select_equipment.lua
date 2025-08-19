@@ -1,3 +1,25 @@
+EQUIPMENT_NAMES = {
+    GS = "Great Sword",
+    SNS = "Sword and Shield",
+    HMR = "Hammer",
+    LNC = "Lance",
+    LS = "Long Sword",
+    SAXE = "Switch Axe",
+    HH = "Hunting Horn",
+    DB = "Dual Blades",
+    GL = "Gunlance",
+    HBG = "Heavy Bowgun",
+    LBG = "Light Bowgun",
+    BOW = "Bow",
+    CATHELM = "Felyne Helm",
+    CATWPN = "Felyne Weapon",
+    CATPLATE = "Felyne Plate",
+    ARMS = "Arms Armor",
+    LEGS = "Legs Armor",
+    BODY = "Chest Armor",
+    WAIST = "Waist Armor",
+    HEAD = "Head Armor",
+}
 function load_equipment (eq_type) --> table[int], table[str], int
     file_list = {}
     names = {}
@@ -27,96 +49,63 @@ function load_cat_set_list() --> table[str], int
 end
 
 function load_set_list() --> table[str], int
-    names = {}
-    count = 0
+    categories = {
+        Female_Blademaster = {
+            names = {},
+            count = 0
+        },
+        Female_Gunner = {
+            names = {},
+            count = 0
+        },
+        Female_Generic = {
+            names = {},
+            count = 0
+        },
+        Male_Blademaster = {
+            names = {},
+            count = 0
+        },
+        Male_Gunner = {
+            names = {},
+            count = 0
+        },
+        Male_Generic = {
+            names = {},
+            count = 0
+        }
+    }
     sets = ini.read(data_dir.."/EQUIPMENT_LIST/SET.ini", "setsfb", "")
     for set in string.gmatch(sets, "([^,]+)") do
-        table.insert(names, set)
-        count += 1
+        table.insert(categories["Female_Blademaster"]["names"], set)
+        categories["Female_Blademaster"]["count"] += 1
     end
     sets = ini.read(data_dir.."/EQUIPMENT_LIST/SET.ini", "setsfg", "")
     for set in string.gmatch(sets, "([^,]+)") do
-        table.insert(names, set)
-        count += 1
+        table.insert(categories["Female_Gunner"]["names"], set)
+        categories["Female_Gunner"]["count"] += 1
     end
     sets = ini.read(data_dir.."/EQUIPMENT_LIST/SET.ini", "setsf", "")
     for set in string.gmatch(sets, "([^,]+)") do
-        table.insert(names, set)
-        count += 1
+        table.insert(categories["Female_Generic"]["names"], set)
+        categories["Female_Generic"]["count"] += 1
     end
     sets = ini.read(data_dir.."/EQUIPMENT_LIST/SET.ini", "setsmb", "")
     for set in string.gmatch(sets, "([^,]+)") do
-        table.insert(names, set)
-        count += 1
+        table.insert(categories["Male_Blademaster"]["names"], set)
+        categories["Male_Blademaster"]["count"] += 1
     end
     sets = ini.read(data_dir.."/EQUIPMENT_LIST/SET.ini", "setsmg", "")
     for set in string.gmatch(sets, "([^,]+)") do
-        table.insert(names, set)
-        count += 1
+        table.insert(categories["Male_Gunner"]["names"], set)
+        categories["Male_Gunner"]["count"] += 1
     end
     sets = ini.read(data_dir.."/EQUIPMENT_LIST/SET.ini", "setsm", "")
     for set in string.gmatch(sets, "([^,]+)") do
-        table.insert(names, set)
-        count += 1
+        table.insert(categories["Male_Generic"]["names"], set)
+        categories["Male_Generic"]["count"] += 1
     end
-    return names, count
-end
-
-function select_replace (equip_type) --> nil
-    local parts, part_names, part_count = load_equipment(equip_type)
-
-    index_s, y_s = 1, 17
-
-    while true do
-    buttons.read()
-
-    screen.print(35, 5, "Parts List", 0.6)
-    max = part_count < 15+index_s and part_count or 15+index_s
-    y_s = 22
-    screen.print(25, y_s, ">", 0.6)
-    screen.print(400, 5, index_s.."/"..part_count, 0.6)
-    for i=index_s, max do
-        screen.print(35, y_s, part_names[i], 0.6)
-        y_s = y_s + 12
-    end
-
-    if circle_to_confirm then
-        atlas:draw("circle", 30, 241)
-        atlas:draw("cross", 110, 241)
-    else
-        atlas:draw("cross", 30, 241)
-        atlas:draw("circle", 110, 241)
-    end
-
-    screen.print(125, 240, "To exit", 0.6)
-    screen.print(45, 240, "To Select", 0.6)
-
-    if buttons.down then
-        index_s += 1
-    elseif buttons.up then
-        index_s -= 1
-    elseif buttons.right then
-        index_s = math.min(part_count, index_s+10)
-    elseif buttons.left then
-        index_s = math.max(1, index_s-10)
-    end
-
-    if index_s < 1 then
-        index_s = part_count
-    end
-
-    if index_s > part_count then
-        index_s = 1
-    end
-
-    if (circle_to_confirm and buttons.circle) or (not circle_to_confirm and buttons.cross) then -- confirm button
-        return parts[index_s]
-    elseif (circle_to_confirm and buttons.cross) or (not circle_to_confirm and buttons.circle) then -- cancel button
-        return nil
-    end
-
-    screen.flip()
-    end
+    return categories
 end
 
 function load_cat_set (name) --> str
@@ -128,57 +117,93 @@ function load_cat_set_from_id (id) --> str
     return load_cat_set(names[id+1])
 end
 
-function load_set_from_id (id) --> str
-    local names, count = load_set_list()
-    return load_set(names[id+1])
-end
-
 function load_set (name) --> str
     return ini.read(data_dir.."/EQUIPMENT_LIST/SET.ini", name, "")
 end
 
-function select_set (cat) --> nil
-    local set_names, set_count
-    if cat then
+function select_replace (equip_type) --> nil
+    local set_names, set_count, categories, cat_names, cat_idx, parts
+    if equip_type == "SET" then
+        categories = load_set_list()
+        cat_names = {"Female_Blademaster", "Female_Gunner", "Female_Generic", "Male_Blademaster", "Male_Gunner", "Male_Generic"}
+    elseif equip_type == "CATSET" then
         set_names, set_count = load_cat_set_list()
+        cat_names = {"Cat"}
+        categories = {
+            Cat = {
+                names = set_names,
+                count = set_count
+            }
+        }
     else
-        set_names, set_count = load_set_list()
+        parts, set_names, set_count = load_equipment(equip_type)
+        cat_names = {EQUIPMENT_NAMES[equip_type]}
+        categories = {}
+        categories[EQUIPMENT_NAMES[equip_type]] = {
+            names = set_names,
+            count = set_count
+        }
     end
 
-    index_s, y_s = 1, 17
+    cat_idx = 1
+    set_names = categories[cat_names[cat_idx]]["names"]
+    set_count = categories[cat_names[cat_idx]]["count"]
+
+    local index_s, y_s = 1, 17
 
     while true do
     buttons.read()
 
-    screen.print(35, 5, "Set List", 0.6)
+    if game_sel_bg then game_sel_bg:blit(0,0) end
+    if atlas.image then
+        if circle_to_confirm then
+            atlas:draw("circle", 381, 257)
+            atlas:draw("cross", 433, 257)
+        else
+            atlas:draw("cross", 381, 257)
+            atlas:draw("circle", 433, 257)
+        end
+    end
+
+    if #cat_names > 1 and atlas.image then
+        atlas:draw("l_button", 100, 12)
+        atlas:draw("r_button", 362, 12)
+    end
+    
+    screen.print(240-6*#cat_names[cat_idx], 12, cat_names[cat_idx]:gsub("_", " "), 1, color.black)
     local max = set_count < 15+index_s and set_count or 15+index_s
-    y_s = 22
-    screen.print(25, y_s, ">", 0.6)
-    screen.print(400, 5, index_s.."/"..set_count, 0.6)
+    y_s = 40
+    screen.print(25, y_s, ">", 0.6, color.black)
+    screen.print(12, 256, index_s.."/"..set_count, 0.6, color.black)
     for i=index_s, max do
-        screen.print(35, y_s, set_names[i], 0.6)
+        screen.print(35, y_s, set_names[i], 0.6, color.black)
         y_s = y_s + 12
     end
-
-    if circle_to_confirm then
-        atlas:draw("circle", 30, 241)
-        atlas:draw("cross", 110, 241)
-    else
-        atlas:draw("cross", 30, 241)
-        atlas:draw("circle", 110, 241)
-    end
-
-    screen.print(125, 240, "To exit", 0.6)
-    screen.print(45, 240, "To Select", 0.6)
 
     if buttons.down then
         index_s += 1
     elseif buttons.up then
         index_s -= 1
     elseif buttons.right then
-        index_s = math.min(count, index_s+10)
+        index_s = math.min(set_count, index_s+10)
     elseif buttons.left then
         index_s = math.max(1, index_s-10)
+    elseif buttons.r then
+        cat_idx += 1
+    elseif buttons.l then
+        cat_idx -= 1
+    end
+    
+    if cat_idx < 1 then
+        cat_idx = #cat_names
+    elseif cat_idx > #cat_names then
+        cat_idx = 1
+    end
+
+    if buttons.l or buttons.r then
+        set_names = categories[cat_names[cat_idx]]["names"]
+        set_count = categories[cat_names[cat_idx]]["count"]
+        index_s = math.min(set_count, index_s)
     end
 
     if index_s < 1 then
@@ -189,10 +214,14 @@ function select_set (cat) --> nil
         index_s= 1
     end
 
-    if (circle_to_confirm and buttons.circle) or (not circle_to_confirm and buttons.cross) and cat then -- confirm and cat
-        return load_cat_set(set_names[index_s])
-    elseif (circle_to_confirm and buttons.circle) or (not circle_to_confirm and buttons.cross) then -- confirm button
-        return load_set(set_names[index_s])
+    if (circle_to_confirm and buttons.circle) or (not circle_to_confirm and buttons.cross) then -- confirm button
+        if type == "SET" then
+            return load_set(set_names[index_s]), set_names[index_s] - 1
+        elseif type == "CATSET" then
+            return load_cat_set(set_names[index_s]), index_s - 1
+        else
+            return parts[index_s], index_s - 1
+        end
     elseif (circle_to_confirm and buttons.cross) or (not circle_to_confirm and buttons.circle) then -- cancel button
         return nil
     end
