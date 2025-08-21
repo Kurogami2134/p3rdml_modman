@@ -170,7 +170,7 @@ function select_replace (equip_type) --> nil
         atlas:draw("r_button", 362, 12)
     end
     
-    screen.print(240-6*#cat_names[cat_idx], 12, cat_names[cat_idx]:gsub("_", " "), 1, color.black)
+    screen.print(240 - screen.textwidth(cat_names[cat_idx], 1) / 2, 12, cat_names[cat_idx]:gsub("_", " "), 1, color.black)
     local max = set_count < 15+index_s and set_count or 15+index_s
     y_s = 40
     screen.print(25, y_s, ">", 0.6, color.black)

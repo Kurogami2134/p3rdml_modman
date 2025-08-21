@@ -14,7 +14,7 @@ dofile "code/load_options.lua"
 
 buttons.interval(10, 10)
 
-selection = 0
+selection = default_game - 1
 
 while true do
     buttons.read()
@@ -36,15 +36,15 @@ while true do
 
     if selection == 0 then
         if p3rd_hd_logo then p3rd_hd_logo:blit(247, 62) end
-        draw.fillrect(0, 0, 480, 272, color.new(1, 1, 1, 179))
+        draw.fillrect(0, 0, 480, 256, color.new(1, 1, 1, 179))
         if p3rd_logo then p3rd_logo:blit(13, 62) end
     else
         if p3rd_logo then p3rd_logo:blit(13, 62) end
-        draw.fillrect(0, 0, 480, 272, color.new(1, 1, 1, 179))
+        draw.fillrect(0, 0, 480, 256, color.new(1, 1, 1, 179))
         if p3rd_hd_logo then p3rd_hd_logo:blit(247, 62) end
     end
 
-    screen.print(23, 257, "v0.13.0")
+    screen.print(23, 257, "v0.13.1")
 
     if buttons.right or buttons.left then
         selection = (selection*-1)+1
@@ -80,7 +80,3 @@ while true do
 
     screen.flip()
 end
-
-
-
--- 
