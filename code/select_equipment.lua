@@ -215,9 +215,9 @@ function select_replace (equip_type) --> nil
     end
 
     if (circle_to_confirm and buttons.circle) or (not circle_to_confirm and buttons.cross) then -- confirm button
-        if type == "SET" then
-            return load_set(set_names[index_s]), set_names[index_s] - 1
-        elseif type == "CATSET" then
+        if equip_type == "SET" then
+            return load_set(set_names[index_s]), set_names[index_s - 1]
+        elseif equip_type == "CATSET" then
             return load_cat_set(set_names[index_s]), index_s - 1
         else
             return parts[index_s], index_s - 1
