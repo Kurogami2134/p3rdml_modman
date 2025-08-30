@@ -211,12 +211,12 @@ function select_replace (equip_type) --> nil
     end
 
     if index_s > set_count then
-        index_s= 1
+        index_s = 1
     end
 
     if (circle_to_confirm and buttons.circle) or (not circle_to_confirm and buttons.cross) then -- confirm button
         if equip_type == "SET" then
-            return load_set(set_names[index_s]), set_names[index_s - 1]
+            return load_set(set_names[index_s]), set_names[index_s]
         elseif equip_type == "CATSET" then
             return load_cat_set(set_names[index_s]), index_s - 1
         else

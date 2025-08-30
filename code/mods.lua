@@ -117,6 +117,47 @@ function save_enabled (mods) --> nil
     ini.write(enabled_db, "enabled", enabled)
 end
 
+function get_deps(mods, mod, parent, iterations) --> table[str]
+    local dep, sub_dep, sub_deps
+    local deps = {}
+    
+    if mods[mod]["depends"] == "null" then
+        return deps
+    end
+    for dep in string.gmatch(mods[mod]["depends"], "([^';']+)") do
+        if (not aux_deps[dep] and dep != parent) then
+            table.insert(deps, dep)
+            aux_deps[dep] = true
+        end
+    end
+    if iterations == 0 then
+        return deps
+    end
+    for _, dep in pairs(deps) do
+        sub_deps = get_deps(mods, dep, mod, iterations - 1)
+        for _, sub_dep in pairs(sub_deps) do
+            if (not aux_deps[dep] and dep != parent) then
+                table.insert(deps, sub_dep)
+                aux_deps[dep] = true
+            end
+        end
+    end
+    return deps
+end
+
+function remove_duplicates(input) --> table
+    local e
+    local aux = {}
+    local res = {}
+    for _, e in pairs(input) do
+        if (not aux[e]) then
+            table.insert(res, e)
+            aux[e] = true
+        end
+    end
+    return res
+end
+
 function toggle_mod(mod) --> nil
     local dest, dest_id
     if string.sub(mod["type"], 1, 5) == "Equip" then

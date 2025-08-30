@@ -91,7 +91,8 @@ function install_mods (mods) --> nil
 
     for mod, info in pairs(mods) do
         if info["enabled"] then
-            if info["type"] == "Code" then
+            if info["type"] == "Pack" then
+            elseif info["type"] == "Code" then
                 table.insert(code_mods, mod)
             elseif info["type"] == "Patch" then
                 do_build_patches = true
@@ -383,11 +384,13 @@ function main () --> nil
     end
 
     if (circle_to_confirm and buttons.circle) or (not circle_to_confirm and buttons.cross) then -- confirm button
-        local dep_name, deps = "", ""
+        local dep_name, deps = "", nil
         local enabled_deps = {}
         local depends_met = true
         if not mods[mod_ids[page*10+index]]["enabled"] and mods[mod_ids[page*10+index]]["depends"] != "null" then
-            for mod in string.gmatch(mods[mod_ids[page*10+index]]["depends"], "([^';']+)") do
+            aux_deps = {}
+            deps = remove_duplicates(get_deps(mods, mod_ids[page*10+index], "", 10))
+            for _, mod in pairs(deps) do
                 if mods[mod] then
                     if not mods[mod]["enabled"] then
                         toggle_mod(mods[mod])
@@ -398,6 +401,7 @@ function main () --> nil
                     break
                 end
             end
+            deps = ""
             for _, dep_name in pairs(enabled_deps) do
                 deps = deps.."\n"..dep_name
             end
