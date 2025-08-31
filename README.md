@@ -54,13 +54,22 @@ Another example, replacing multiple files.
 
 ### Patch Mods
 
-Patch mods are basically [code mods](#code-mods) that are loaded specifically after another file, (most likely) with the intention to patch said file.
+Patch mods are basically [code mods](#code-mods) that are loaded specifically after another file, (most likely) with the intention to patch said file. The last 8 bytes of a code mode `FFFFFFFF00000000` should be skipped for patch modes.
 
     [MOD INFO]
     Name="MOD NAME"
     Files="PATCHFILE"
     Target="FILEID"
     Type="Patch"
+
+### Mod packs
+
+Mod packs are "empty" mods with multiple dependencies for the mods they should enable, mods in a mod pack may be enabled individually, but having a single toggle handle all of them should make distribution simpler.
+
+    [MOD INFO]
+    Name="MOD PACK NAME"
+    Type="Pack"
+    Depends="mod1;mod2;mod3
 
 ### Equipment Replacement
 
