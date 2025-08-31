@@ -18,6 +18,14 @@ The mod manager currently supports five types of mods.
 
 * At least one example of each type of mod is included in the release.
 
+### Mod Naming Conventions
+
+Although Mod Manager doesn't enforce any mod naming conventions, I heavily encourage following these suggestions.
+
+ * No uppercase in mod folder.
+ * No spaces nor any special characters. (Underscores are alright.)
+ * Use a descriptive and "original" name.
+
 ### Code Mods
 
 Code mods must specify a file to be installed as a mod.
