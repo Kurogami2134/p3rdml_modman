@@ -21,8 +21,9 @@ function split(str, sep) --> table[string]
     return res
 end
 
-function file_copy(origin, dest) --> nil
-    if not files.exists(dest) then
+function file_copy(origin, dest, is_file) --> nil
+    local target
+    if not is_file and not files.exists(dest) then
         files.mkdir(dest)
     end
 
@@ -30,7 +31,13 @@ function file_copy(origin, dest) --> nil
     local file_data = file:read("*all")
     file:close()
     
-    file = io.open(dest.."/"..files.nopath(origin), "wb")
+    if is_file then
+        target = dest
+    else
+        target = dest.."/"..files.nopath(origin)
+    end
+    
+    file = io.open(target, "wb")
     file:write(file_data)
     file:close()
 end
@@ -41,11 +48,11 @@ function clear_files () --> nil
 end
 
 function copy_file (mod, origin, dest) --> nil
-    file_copy("MODS/"..mod.."/"..origin, "ms0:/"..modloader_root.."/files")
     if files.exists("ms0:/"..modloader_root.."/files/"..dest) then
         files.delete("ms0:/"..modloader_root.."/files/"..dest)
     end
-    files.rename("ms0:/"..modloader_root.."/files/"..files.nopath(origin), "ms0:/"..modloader_root.."/files/"..dest)
+    file_copy("MODS/"..mod.."/"..origin, "ms0:/"..modloader_root.."/files/"..dest, true)
+    --files.rename("ms0:/"..modloader_root.."/files/"..files.nopath(origin), "ms0:/"..modloader_root.."/files/"..dest)
 end
 
 function get_target(mod_id) --> str
@@ -252,7 +259,7 @@ function build_mods_bin (mod_list) --> nil
             file:write(string.char(string.len(file_name)+2))
             file:write("/"..file_name..string.char(0))
 
-            file_copy("MODS/"..mod.."/"..mod_file, "ms0:/"..modloader_root.."/mods")
+            file_copy("MODS/"..mod.."/"..mod_file, "ms0:/"..modloader_root.."/mods", false)
         end
     end
 
