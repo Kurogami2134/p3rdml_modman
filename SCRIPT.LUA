@@ -2,6 +2,8 @@ collectgarbage()
 color.loadpalette()
 
 dofile "code/atlas.lua"
+dofile "code/msg_box.lua"
+dofile "code/iso_patching.lua"
 
 if not game_sel_bg then game_sel_bg=image.load("assets/game_sel_background.png") end
 if not atlas.image then atlas.image=image.load("assets/atlas.png") end
@@ -31,7 +33,9 @@ while true do
         end
 
         atlas:draw("square", 317, 257)
+        atlas:draw("triangle", 263, 257)
     end
+    screen.print(278, 257, "Patch", 0.6)
     screen.print(331, 257, "Options", 0.6)
 
     if selection == 0 then
@@ -44,7 +48,7 @@ while true do
         if p3rd_hd_logo then p3rd_hd_logo:blit(247, 62) end
     end
 
-    screen.print(23, 257, "v0.14.0")
+    screen.print(23, 257, "v0.15.0")
 
     if buttons.right or buttons.left then
         selection = (selection*-1)+1
@@ -56,7 +60,7 @@ while true do
     elseif (circle_to_confirm and buttons.circle) or (not circle_to_confirm and buttons.cross) then -- confirm button
         if selection == 0 then
             game_version = "NOHD"
-            modloader_root = "P3rdML"
+            modloader_root = "P3RDML"
             enabled_db = "user/nohd/enabled.ini"
             --anim_db = "user/nohd/anim_ids.ini"
             replaced_db = "user/nohd/replaced_files.ini"
@@ -66,7 +70,7 @@ while true do
             anim_start_offset = 0x99C0000
         else
             game_version = "HD"
-            modloader_root = "P3rdHDML"
+            modloader_root = "P3RDHDML"
             enabled_db = "user/hd/enabled.ini"
             --anim_db = "user/hd/anim_ids.ini"
             replaced_db = "user/hd/replaced_files.ini"
@@ -76,6 +80,8 @@ while true do
             anim_start_offset = 0x0B000400
         end
         dofile "code/main.lua"
+    elseif buttons.triangle then
+        patch_menu()
     end
 
     screen.flip()

@@ -4,7 +4,6 @@ color.loadpalette()
 dofile "code/anim_compiler.lua"
 dofile "code/select_equipment.lua"
 dofile "code/mods.lua"
-dofile "code/msg_box.lua"
 
 if not bg then bg=image.load("assets/mm_background.png") end
 
@@ -34,7 +33,7 @@ function file_copy(origin, dest, is_file) --> nil
     if is_file then
         target = dest
     else
-        target = dest.."/"..files.nopath(origin)
+        target = dest.."/"..string.upper(files.nopath(origin))
     end
     
     file = io.open(target, "wb")
@@ -43,15 +42,15 @@ function file_copy(origin, dest, is_file) --> nil
 end
 
 function clear_files () --> nil
-    files.delete("ms0:/"..modloader_root.."/files/")
-    files.mkdir("ms0:/"..modloader_root.."/files/")
+    files.delete("ms0:/"..modloader_root.."/FILES/")
+    files.mkdir("ms0:/"..modloader_root.."/FILES/")
 end
 
 function copy_file (mod, origin, dest) --> nil
-    if files.exists("ms0:/"..modloader_root.."/files/"..dest) then
-        files.delete("ms0:/"..modloader_root.."/files/"..dest)
+    if files.exists("ms0:/"..modloader_root.."/FILES/"..dest) then
+        files.delete("ms0:/"..modloader_root.."/FILES/"..dest)
     end
-    file_copy("MODS/"..mod.."/"..origin, "ms0:/"..modloader_root.."/files/"..dest, true)
+    file_copy("MODS/"..mod.."/"..origin, "ms0:/"..modloader_root.."/FILES/"..dest, true)
     --files.rename("ms0:/"..modloader_root.."/files/"..files.nopath(origin), "ms0:/"..modloader_root.."/files/"..dest)
 end
 
@@ -81,6 +80,12 @@ end
 
 function install_mods (mods) --> nil
     save_enabled(mods)
+
+    if not files.exists("ms0:/"..modloader_root) then
+        files.mkdir("ms0:/"..modloader_root)
+        files.mkdir("ms0:/"..modloader_root.."/FILES")
+        files.mkdir("ms0:/"..modloader_root.."/MODS")
+    end
 
     local replaced = ""
     local dest_ids = ""
@@ -183,7 +188,7 @@ function build_patches (patch_mods)  --> nil
             file:close()
         end
         
-        file = io.open("ms0:/"..modloader_root.."/files/"..target.."P", "wb")
+        file = io.open("ms0:/"..modloader_root.."/FILES/"..target.."P", "wb")
         file:write(data)
         file:write(int_to_bytes(-1)..int_to_bytes(0))
         file:close()
@@ -250,16 +255,16 @@ end
 
 function build_mods_bin (mod_list) --> nil
     local mod_files, file_name, file
-    file = io.open("ms0:/"..modloader_root.."/mods.bin", "w")
+    file = io.open("ms0:/"..modloader_root.."/MODS.BIN", "w")
 
     for _, mod in pairs(mod_list) do
         mod_files = get_mod_files(mod)
         for mod_file in string.gmatch(mod_files, "([^';']+)") do
-            file_name = files.nopath(mod_file) 
+            file_name = string.upper(files.nopath(mod_file))
             file:write(string.char(string.len(file_name)+2))
             file:write("/"..file_name..string.char(0))
 
-            file_copy("MODS/"..mod.."/"..mod_file, "ms0:/"..modloader_root.."/mods", false)
+            file_copy("MODS/"..mod.."/"..mod_file, "ms0:/"..modloader_root.."/MODS", false)
         end
     end
 

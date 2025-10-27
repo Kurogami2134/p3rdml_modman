@@ -47,6 +47,12 @@ atlas = {
         w = 14, 
         h = 14
     },
+    triangle = {
+        x = 32,
+        y = 22,
+        w = 14, 
+        h = 14
+    },
     r_button = {
         x = 34,
         y = 0,
