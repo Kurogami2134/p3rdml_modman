@@ -8,6 +8,7 @@ dofile "code/mods.lua"
 if not bg then bg=image.load("assets/mm_background.png") end
 
 SORT_MODES = {TEXT.sort_name, TEXT.sort_type}
+SORTING_KEYS = {"name", "type"}
 
 buttons.interval(10, 10)
 
@@ -456,11 +457,11 @@ function main () --> nil
         if sort_mode > #SORT_MODES then
             sort_mode = 1
         end
-        mod_ids = sort_mods(mods, mod_ids, string.lower(SORT_MODES[sort_mode]), reverse_sort)
+        mod_ids = sort_mods(mods, mod_ids, SORTING_KEYS[sort_mode], reverse_sort)
         frame = 0
     elseif buttons.l then
         reverse_sort = not reverse_sort
-        mod_ids = sort_mods(mods, mod_ids, string.lower(SORT_MODES[sort_mode]), reverse_sort)
+        mod_ids = sort_mods(mods, mod_ids, SORTING_KEYS[sort_mode], reverse_sort)
         frame = 0
     elseif (circle_to_confirm and buttons.cross) or (not circle_to_confirm and buttons.circle) then -- cancel button
         break
