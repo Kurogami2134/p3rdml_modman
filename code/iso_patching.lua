@@ -6,6 +6,18 @@ function find_file(cur_path, header) --> string
     while true do
         buttons.read()
         
+        if atlas.image then
+            if circle_to_confirm then
+                atlas:draw("circle", 380, 257)
+                atlas:draw("cross", 433, 257)
+            else
+                atlas:draw("cross", 380, 257)
+                atlas:draw("circle", 433, 257)
+            end
+        end
+
+        screen.print(448, 257, TEXT.exit, 0.6)
+        screen.print(394, 257, TEXT.select, 0.6)
         screen.print(24, 24, header, 1, color.white)
         screen.print(400, 24, index.."/"..#file_list, 1, color.white)
 

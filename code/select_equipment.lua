@@ -23,11 +23,13 @@ EQUIPMENT_NAMES = {
 function load_equipment (eq_type) --> table[int], table[str], int
     file_list = {}
     names = {}
-    parts = ini.read(data_dir.."/EQUIPMENT_LIST/"..eq_type..".ini", "files", "")
-    parts = parts..ini.read(data_dir.."/EQUIPMENT_LIST/"..eq_type..".ini", "files2", "")
-    parts = parts..ini.read(data_dir.."/EQUIPMENT_LIST/"..eq_type..".ini", "files3", "")
-    parts = parts..ini.read(data_dir.."/EQUIPMENT_LIST/"..eq_type..".ini", "files4", "")
-    parts = parts..ini.read(data_dir.."/EQUIPMENT_LIST/"..eq_type..".ini", "files5", "")
+    parts = ini.read(data_dir.."/"..language.."/EQUIPMENT_LIST/"..eq_type..".ini", "files", "")
+    parts = parts..ini.read(data_dir.."/"..language.."/EQUIPMENT_LIST/"..eq_type..".ini", "files2", "")
+    parts = parts..ini.read(data_dir.."/"..language.."/EQUIPMENT_LIST/"..eq_type..".ini", "files3", "")
+    parts = parts..ini.read(data_dir.."/"..language.."/EQUIPMENT_LIST/"..eq_type..".ini", "files4", "")
+    parts = parts..ini.read(data_dir.."/"..language.."/EQUIPMENT_LIST/"..eq_type..".ini", "files5", "")
+    parts = parts..ini.read(data_dir.."/"..language.."/EQUIPMENT_LIST/"..eq_type..".ini", "files6", "")
+    parts = parts..ini.read(data_dir.."/"..language.."/EQUIPMENT_LIST/"..eq_type..".ini", "files7", "")
     count = 0
     for file in string.gmatch(parts, "([^;]+)") do
         table.insert(file_list, string.sub(file, -4, -1))
@@ -40,7 +42,7 @@ end
 function load_cat_set_list() --> table[str], int
     names = {}
     count = 0
-    sets = ini.read(data_dir.."/EQUIPMENT_LIST/CATSET.ini", "sets", "")
+    sets = ini.read(data_dir.."/"..language.."/EQUIPMENT_LIST/CATSET.ini", "sets", "")
     for set in string.gmatch(sets, "([^,]+)") do
         table.insert(names, set)
         count += 1
@@ -75,32 +77,32 @@ function load_set_list() --> table[str], int
             count = 0
         }
     }
-    sets = ini.read(data_dir.."/EQUIPMENT_LIST/SET.ini", "setsfb", "")
+    sets = ini.read(data_dir.."/"..language.."/EQUIPMENT_LIST/SET.ini", "setsfb", "")
     for set in string.gmatch(sets, "([^,]+)") do
         table.insert(categories["Female_Blademaster"]["names"], set)
         categories["Female_Blademaster"]["count"] += 1
     end
-    sets = ini.read(data_dir.."/EQUIPMENT_LIST/SET.ini", "setsfg", "")
+    sets = ini.read(data_dir.."/"..language.."/EQUIPMENT_LIST/SET.ini", "setsfg", "")
     for set in string.gmatch(sets, "([^,]+)") do
         table.insert(categories["Female_Gunner"]["names"], set)
         categories["Female_Gunner"]["count"] += 1
     end
-    sets = ini.read(data_dir.."/EQUIPMENT_LIST/SET.ini", "setsf", "")
+    sets = ini.read(data_dir.."/"..language.."/EQUIPMENT_LIST/SET.ini", "setsf", "")
     for set in string.gmatch(sets, "([^,]+)") do
         table.insert(categories["Female_Generic"]["names"], set)
         categories["Female_Generic"]["count"] += 1
     end
-    sets = ini.read(data_dir.."/EQUIPMENT_LIST/SET.ini", "setsmb", "")
+    sets = ini.read(data_dir.."/"..language.."/EQUIPMENT_LIST/SET.ini", "setsmb", "")
     for set in string.gmatch(sets, "([^,]+)") do
         table.insert(categories["Male_Blademaster"]["names"], set)
         categories["Male_Blademaster"]["count"] += 1
     end
-    sets = ini.read(data_dir.."/EQUIPMENT_LIST/SET.ini", "setsmg", "")
+    sets = ini.read(data_dir.."/"..language.."/EQUIPMENT_LIST/SET.ini", "setsmg", "")
     for set in string.gmatch(sets, "([^,]+)") do
         table.insert(categories["Male_Gunner"]["names"], set)
         categories["Male_Gunner"]["count"] += 1
     end
-    sets = ini.read(data_dir.."/EQUIPMENT_LIST/SET.ini", "setsm", "")
+    sets = ini.read(data_dir.."/"..language.."/EQUIPMENT_LIST/SET.ini", "setsm", "")
     for set in string.gmatch(sets, "([^,]+)") do
         table.insert(categories["Male_Generic"]["names"], set)
         categories["Male_Generic"]["count"] += 1
@@ -109,7 +111,7 @@ function load_set_list() --> table[str], int
 end
 
 function load_cat_set (name) --> str
-    return ini.read(data_dir.."/EQUIPMENT_LIST/CATSET.ini", name, "")
+    return ini.read(data_dir.."/"..language.."/EQUIPMENT_LIST/CATSET.ini", name, "")
 end
 
 function load_cat_set_from_id (id) --> str
@@ -118,7 +120,7 @@ function load_cat_set_from_id (id) --> str
 end
 
 function load_set (name) --> str
-    return ini.read(data_dir.."/EQUIPMENT_LIST/SET.ini", name, "")
+    return ini.read(data_dir.."/"..language.."/EQUIPMENT_LIST/SET.ini", name, "")
 end
 
 function select_replace (equip_type) --> nil

@@ -42,13 +42,13 @@ while true do
     screen.print(331, 257, TEXT.options, 0.6)
 
     if selection == 0 then
-        if p3rd_hd_logo then p3rd_hd_logo:blit(247, 62) end
+        if p3rd_hd_logo then p3rd_hd_logo:blit(246, 61, 1, 1, 222, 150) end
         draw.fillrect(0, 0, 480, 256, color.new(1, 1, 1, 179))
-        if p3rd_logo then p3rd_logo:blit(13, 62) end
+        if p3rd_logo then p3rd_logo:blit(12, 61, 1, 1, 222, 150) end
     else
-        if p3rd_logo then p3rd_logo:blit(13, 62) end
+        if p3rd_logo then p3rd_logo:blit(12, 61, 1, 1, 222, 150) end
         draw.fillrect(0, 0, 480, 256, color.new(1, 1, 1, 179))
-        if p3rd_hd_logo then p3rd_hd_logo:blit(247, 62) end
+        if p3rd_hd_logo then p3rd_hd_logo:blit(246, 61, 1, 1, 222, 150) end
     end
 
     screen.print(23, 257, "v0.16.0")
@@ -65,20 +65,16 @@ while true do
             game_version = "NOHD"
             modloader_root = "P3RDML"
             enabled_db = "user/nohd/enabled.ini"
-            --anim_db = "user/nohd/anim_ids.ini"
             replaced_db = "user/nohd/replaced_files.ini"
             dest_ids_db = "user/nohd/dest_ids.ini"
-            --replaced_sets_db = "user/nohd/sets.ini"
             data_dir = "DATA"
             anim_start_offset = 0x99C0000
         else
             game_version = "HD"
             modloader_root = "P3RDHDML"
             enabled_db = "user/hd/enabled.ini"
-            --anim_db = "user/hd/anim_ids.ini"
             replaced_db = "user/hd/replaced_files.ini"
             dest_ids_db = "user/hd/dest_ids.ini"
-            --replaced_sets_db = "user/hd/sets.ini"
             data_dir = "DATA_HD"
             anim_start_offset = 0x0B000400
         end

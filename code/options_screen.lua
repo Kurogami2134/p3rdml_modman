@@ -87,10 +87,10 @@ function options_screen () --> nil
 
         if atlas.image then
             if circle_to_confirm then
-                atlas:draw("circle", 381, 257)
+                atlas:draw("circle", 380, 257)
                 atlas:draw("cross", 433, 257)
             else
-                atlas:draw("cross", 381, 257)
+                atlas:draw("cross", 380, 257)
                 atlas:draw("circle", 433, 257)
             end
         end
