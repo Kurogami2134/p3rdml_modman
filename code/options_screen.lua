@@ -5,12 +5,16 @@ function save_options (options) --> nil
 end
 
 function options_screen () --> nil
+    local LANG = {
+        en = 1,
+        sp = 2
+    }
     local index = 1
     local y
     local options = {}
     table.insert(options,
         {
-            name = "Confirm Button",
+            name = TEXT.opt_confirm_button,
             current = circle_to_confirm and 2 or 1,
             options = {
                 {"X", "false"},
@@ -20,13 +24,23 @@ function options_screen () --> nil
         })
     table.insert(options,
         {
-            name = "Default Game",
+            name = TEXT.opt_default_game,
             current = default_game,
             options = {
                 {"P3rd", "p3rd"},
                 {"P3rdHD", "p3rdhd"}
             },
             key = "default_game"
+        })
+    table.insert(options,
+        {
+            name = TEXT.opt_language,
+            current = LANG[language],
+            options = {
+                {"English", "en"},
+                {"Español", "sp"}
+            },
+            key = "language"
         })
     
     frame = 0
@@ -35,7 +49,7 @@ function options_screen () --> nil
 
         frame = (frame + 1) % 100
         if game_sel_bg then game_sel_bg:blit(0,0) end
-        screen.print(198, 12, "OPTIONS", 1, color.black)
+        screen.print(240 - screen.textwidth(TEXT.options_upper, 1) / 2, 12, TEXT.options_upper, 1, color.black)
 
         y = 60
 
@@ -80,6 +94,9 @@ function options_screen () --> nil
                 atlas:draw("circle", 433, 257)
             end
         end
+        screen.print(448, 257, TEXT.exit, 0.6)
+        screen.print(394, 257, TEXT.ok, 0.6)
+
         screen.flip()
         if (circle_to_confirm and buttons.circle) or (not circle_to_confirm and buttons.cross) then -- confirm button 
             save_options(options)

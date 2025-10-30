@@ -25,18 +25,21 @@ while true do
 
     if atlas.image then
         if circle_to_confirm then
-            atlas:draw("circle", 381, 257)
+            atlas:draw("circle", 380, 257)
             atlas:draw("cross", 433, 257)
         else
-            atlas:draw("cross", 381, 257)
+            atlas:draw("cross", 380, 257)
             atlas:draw("circle", 433, 257)
         end
 
         atlas:draw("square", 317, 257)
-        atlas:draw("triangle", 263, 257)
+        atlas:draw("triangle", 253, 257)
     end
-    screen.print(278, 257, "Patch", 0.6)
-    screen.print(331, 257, "Options", 0.6)
+
+    screen.print(448, 257, TEXT.exit, 0.6)
+    screen.print(394, 257, TEXT.select, 0.6)
+    screen.print(268, 257, TEXT.patch, 0.6)
+    screen.print(331, 257, TEXT.options, 0.6)
 
     if selection == 0 then
         if p3rd_hd_logo then p3rd_hd_logo:blit(247, 62) end
@@ -48,7 +51,7 @@ while true do
         if p3rd_hd_logo then p3rd_hd_logo:blit(247, 62) end
     end
 
-    screen.print(23, 257, "v0.15.0")
+    screen.print(23, 257, "v0.16.0")
 
     if buttons.right or buttons.left then
         selection = (selection*-1)+1

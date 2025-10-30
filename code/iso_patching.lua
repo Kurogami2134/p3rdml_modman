@@ -49,17 +49,17 @@ function find_file(cur_path, header) --> string
 end
 
 function patch_menu() --> nil
-    local iso_path = find_file("ms0:/", "Select your ISO")
+    local iso_path = find_file("ms0:/", TEXT.select_iso)
     if iso_path == nil then
-        msg_box("Patch Canceled", 85, 50)
+        msg_box(TEXT.patch_canceled, 85, 50)
         return
     end
-    local patch_path = find_file("PATCHES/", "Select your patch")
+    local patch_path = find_file("PATCHES/", TEXT.select_patch)
     if iso_path != nil and patch_path != nil then
         patch_iso(patch_path, iso_path)
-        msg_box("Patch Applied", 90, 50)
+        msg_box(TEXT.patch_applied, 90, 50)
     else
-        msg_box("Patch Canceled", 85, 50)
+        msg_box(TEXT.patch_canceled, 85, 50)
     end
 end
 
@@ -74,7 +74,7 @@ function patch_iso(patch_path, iso_path) --> nil
     iso:seek("set", 0x110000)
     data = patch:read(chunk_size)
     while data != nil do
-        screen.print(40, 40, "Patching"..steps[math.floor(step/10) % 3 + 1])
+        screen.print(40, 40, TEXT.patching..steps[math.floor(step/10) % 3 + 1])
         screen.print(40, 60, math.floor(step*chunk_size*100/patch_size).."%")
         step = step + 1
         iso:write(data)

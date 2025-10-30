@@ -7,7 +7,7 @@ dofile "code/mods.lua"
 
 if not bg then bg=image.load("assets/mm_background.png") end
 
-SORT_MODES = {"Name", "Type"}
+SORT_MODES = {TEXT.sort_name, TEXT.sort_type}
 
 buttons.interval(10, 10)
 
@@ -175,7 +175,7 @@ function install_mods (mods) --> nil
         build_animations(anim_mods)
     end
 
-    msg_box("Mods Applied", 100, 50)
+    msg_box(TEXT.mods_applied, 100, 50)
 end
 
 function build_patches (patch_mods)  --> nil
@@ -276,7 +276,7 @@ function main () --> nil
     local mods, mod_ids, mod_count = load_list()
 
     if mod_count == 0 then
-        msg_box("No mods found", 95, 50)
+        msg_box(TEXT.no_mods, 95, 50)
         return
     end
 
@@ -309,22 +309,42 @@ function main () --> nil
         alpha_inc = false
     end
 
-    screen.print(49, 53, "Mod list", 0.6, color.yellow)
+    screen.print(49, 53, TEXT.mod_list, 0.6, color.yellow)
     screen.print(216, 53, (page+1).."/"..pages, 0.6)
 
+    local r_offset = 472 - screen.textwidth(TEXT.exit, 0.6)
+    screen.print(r_offset, 257, TEXT.exit, 0.6)
+    
     if circle_to_confirm then
-        atlas:draw("circle", 332, 257)
-        atlas:draw("cross", 433, 257)
+        r_offset = r_offset - 16
+        atlas:draw("cross", r_offset - 16, 257)
+        r_offset = r_offset - screen.textwidth(TEXT.toggle, 0.6) - 2
+        screen.print(r_offset, 257, TEXT.toggle, 0.6)
+        r_offset = r_offset - 16
+        atlas:draw("circle", r_offset, 257)
     else
-        atlas:draw("cross", 332, 257)
-        atlas:draw("circle", 433, 257)
+        r_offset = r_offset - 16
+        atlas:draw("circle", r_offset, 257)
+        r_offset = r_offset - screen.textwidth(TEXT.toggle, 0.6) - 2
+        screen.print(r_offset, 257, TEXT.toggle, 0.6)
+        r_offset = r_offset - 16
+        atlas:draw("cross", r_offset, 257)
     end
+    
+    r_offset = r_offset - screen.textwidth(TEXT.apply, 0.6) - 2
+    screen.print(r_offset, 257, TEXT.apply, 0.6)
+    r_offset = r_offset - 16
+    atlas:draw("triangle", r_offset, 257)
+    r_offset = r_offset - screen.textwidth(TEXT.clear_and_apply, 0.6) - 2
+    screen.print(r_offset, 257, TEXT.clear_and_apply, 0.6)
+    r_offset = r_offset - 16
+    atlas:draw("square", r_offset, 257)
     
     screen.print(23, 257, SORT_MODES[sort_mode])
     if reverse_sort then
-        atlas:draw("sort_desc", 92, 256)
+        atlas:draw("sort_desc", 99, 256)
     else
-        atlas:draw("sort_asc", 92, 256)
+        atlas:draw("sort_asc", 99, 256)
     end
     y = 68
     draw.fillrect(41, y-16+16*index, 220, 15, color.new(50, 232, 1, sel_alpha))
@@ -418,7 +438,7 @@ function main () --> nil
                 deps = deps.."\n"..dep_name
             end
             if deps != "" then
-                msg_box("Enabled Dependencies", 10, 10, deps, 10, 40)
+                msg_box(TEXT.enabled_deps, 10, 10, deps, 10, 40)
             end
             if depends_met then
                 toggle_mod(mods[mod_ids[page*10+index]])

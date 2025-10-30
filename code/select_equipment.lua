@@ -1,24 +1,24 @@
 EQUIPMENT_NAMES = {
-    GS = "Great Sword",
-    SNS = "Sword and Shield",
-    HMR = "Hammer",
-    LNC = "Lance",
-    LS = "Long Sword",
-    SAXE = "Switch Axe",
-    HH = "Hunting Horn",
-    DB = "Dual Blades",
-    GL = "Gunlance",
-    HBG = "Heavy Bowgun",
-    LBG = "Light Bowgun",
-    BOW = "Bow",
-    CATHELM = "Felyne Helm",
-    CATWPN = "Felyne Weapon",
-    CATPLATE = "Felyne Plate",
-    ARMS = "Arms Armor",
-    LEGS = "Legs Armor",
-    BODY = "Chest Armor",
-    WAIST = "Waist Armor",
-    HEAD = "Head Armor",
+    GS = TEXT.gs,
+    SNS = TEXT.sns,
+    HMR = TEXT.hmr,
+    LNC = TEXT.lnc,
+    LS = TEXT.ls,
+    SAXE = TEXT.saxe,
+    HH = TEXT.hh,
+    DB = TEXT.db,
+    GL = TEXT.gl,
+    HBG = TEXT.hbg,
+    LBG = TEXT.lbg,
+    BOW = TEXT.bow,
+    CATHELM = TEXT.cat_helm,
+    CATWPN = TEXT.cat_wpn,
+    CATPLATE = TEXT.cat_plate,
+    ARMS = TEXT.arms,
+    LEGS = TEXT.legs,
+    BODY = TEXT.chest,
+    WAIST = TEXT.waist,
+    HEAD = TEXT.head,
 }
 function load_equipment (eq_type) --> table[int], table[str], int
     file_list = {}
@@ -164,6 +164,9 @@ function select_replace (equip_type) --> nil
             atlas:draw("circle", 433, 257)
         end
     end
+
+    screen.print(448, 257, TEXT.exit, 0.6)
+    screen.print(394, 257, TEXT.select, 0.6)
 
     if #cat_names > 1 and atlas.image then
         atlas:draw("l_button", 100, 12)
