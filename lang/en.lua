@@ -1,6 +1,10 @@
 TEXT = {
     exit = "Exit",
     ok = "Ok",
+    yes = "Yes",
+    no = "No",
+    press_circle = "PRESS ::circle:: TO CONTINUE",
+    run_install_script = "Run install script?",
     select = "Select",
     apply = "Apply",
     clear_and_apply = "Clear & Apply",

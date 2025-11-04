@@ -12,15 +12,6 @@ SORTING_KEYS = {"name", "type"}
 
 buttons.interval(10, 10)
 
-function split(str, sep) --> table[string]
-    local parts = string.gmatch(str, "([^"..sep.."]+)")
-    local res = {}
-    for part in parts do
-        table.insert(res, part)
-    end
-    return res
-end
-
 function file_copy(origin, dest, is_file) --> nil
     local target
     if not is_file and not files.exists(dest) then

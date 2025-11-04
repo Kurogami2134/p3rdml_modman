@@ -1,6 +1,10 @@
 TEXT = {
     exit = "Salir",
     ok = "Ok",
+    yes = "Si",
+    no = "No",
+    press_circle = "PULSA ::circle::",
+    run_install_script = "Ejecutar script?",
     select = "Ok",
     apply = "Aplicar",
     clear_and_apply = "Limpiar y Aplicar",
