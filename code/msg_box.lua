@@ -46,25 +46,26 @@ function sp_text_width(line, size) --> int
 end
 
 function msg_box (line1, line1_y, line2, line2_y, line3, line3_y) --> nil
-    msg_box_tex:blit(BOX_CORNER_X, BOX_CORNER_Y)
-
-    if line1 then
-        sp_print(line1, BOX_CENTER_X-(sp_text_width(line1)/2), BOX_CORNER_Y+line1_y)
-    end
-
-    if line2 then
-        sp_print(line2, BOX_CENTER_X-(sp_text_width(line2)/2), BOX_CORNER_Y+line2_y)
-    end
-
-    if line3 then
-        sp_print(line2, BOX_CENTER_X-(sp_text_width(line3)/2), BOX_CORNER_Y+line3_y)
-    end
-
-    sp_print(TEXT.press_circle, BOX_CENTER_X-(sp_text_width(TEXT.press_circle, .6)/2), 197, .6)
-
-    screen.flip()
-
     while true do
+        if game_sel_bg then game_sel_bg:blit(0,0) end
+        msg_box_tex:blit(BOX_CORNER_X, BOX_CORNER_Y)
+
+        if line1 then
+            sp_print(line1, BOX_CENTER_X-(sp_text_width(line1)/2), BOX_CORNER_Y+line1_y)
+        end
+
+        if line2 then
+            sp_print(line2, BOX_CENTER_X-(sp_text_width(line2)/2), BOX_CORNER_Y+line2_y)
+        end
+
+        if line3 then
+            sp_print(line2, BOX_CENTER_X-(sp_text_width(line3)/2), BOX_CORNER_Y+line3_y)
+        end
+
+        sp_print(TEXT.press_circle, BOX_CENTER_X-(sp_text_width(TEXT.press_circle, .6)/2), 197, .6)
+
+        screen.flip()
+
         buttons.read()
         if buttons.circle then
             break
@@ -73,31 +74,32 @@ function msg_box (line1, line1_y, line2, line2_y, line3, line3_y) --> nil
 end
 
 function confirm_msg (line1, line1_y, line2, line2_y, line3, line3_y) --> nil
-    msg_box_tex:blit(BOX_CORNER_X, BOX_CORNER_Y)
-
-    if line1 then
-        sp_print(line1, BOX_CENTER_X-(sp_text_width(line1)/2), BOX_CORNER_Y+line1_y)
-    end
-
-    if line2 then
-        sp_print(line2, BOX_CENTER_X-(sp_text_width(line2)/2), BOX_CORNER_Y+line2_y)
-    end
-
-    if line3 then
-        sp_print(line2, BOX_CENTER_X-(sp_text_width(line3)/2), BOX_CORNER_Y+line3_y)
-    end
-
-    if circle_to_confirm then
-        sp_print(" ::circle::"..TEXT.yes, 115, 180, .6)
-        sp_print(" ::cross::"..TEXT.no, 115, 196, .6)
-    else
-        sp_print(" ::cross::"..TEXT.yes, 115, 180, .6)
-        sp_print(" ::circle::"..TEXT.no, 115, 196, .6)
-    end
-
-    screen.flip()
-
     while true do
+        if game_sel_bg then game_sel_bg:blit(0,0) end
+        msg_box_tex:blit(BOX_CORNER_X, BOX_CORNER_Y)
+
+        if line1 then
+            sp_print(line1, BOX_CENTER_X-(sp_text_width(line1)/2), BOX_CORNER_Y+line1_y)
+        end
+
+        if line2 then
+            sp_print(line2, BOX_CENTER_X-(sp_text_width(line2)/2), BOX_CORNER_Y+line2_y)
+        end
+
+        if line3 then
+            sp_print(line2, BOX_CENTER_X-(sp_text_width(line3)/2), BOX_CORNER_Y+line3_y)
+        end
+
+        if circle_to_confirm then
+            sp_print(" ::circle::"..TEXT.yes, 115, 180, .6)
+            sp_print(" ::cross::"..TEXT.no, 115, 196, .6)
+        else
+            sp_print(" ::cross::"..TEXT.yes, 115, 180, .6)
+            sp_print(" ::circle::"..TEXT.no, 115, 196, .6)
+        end
+
+        screen.flip()
+
         buttons.read()
         if (circle_to_confirm and buttons.cross) or (not circle_to_confirm and buttons.circle) then -- cancel button
             return false
