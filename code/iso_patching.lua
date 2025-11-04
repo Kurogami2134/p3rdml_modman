@@ -63,15 +63,15 @@ end
 function patch_menu() --> nil
     local iso_path = find_file("ms0:/", TEXT.select_iso)
     if iso_path == nil then
-        msg_box(TEXT.patch_canceled, 85, 50)
+        msg_box(TEXT.patch_canceled, 50)
         return
     end
     local patch_path = find_file("PATCHES/", TEXT.select_patch)
     if iso_path != nil and patch_path != nil then
         patch_iso(patch_path, iso_path)
-        msg_box(TEXT.patch_applied, 90, 50)
+        msg_box(TEXT.patch_applied, 50)
     else
-        msg_box(TEXT.patch_canceled, 85, 50)
+        msg_box(TEXT.patch_canceled, 50)
     end
 end
 

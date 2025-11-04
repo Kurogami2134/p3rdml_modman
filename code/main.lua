@@ -176,7 +176,7 @@ function install_mods (mods) --> nil
         build_animations(anim_mods)
     end
 
-    msg_box(TEXT.mods_applied, 100, 50)
+    msg_box(TEXT.mods_applied, 50)
 end
 
 function build_patches (patch_mods)  --> nil
@@ -277,7 +277,7 @@ function main () --> nil
     local mods, mod_ids, mod_count = load_list()
 
     if mod_count == 0 then
-        msg_box(TEXT.no_mods, 95, 50)
+        msg_box(TEXT.no_mods, 50)
         return
     end
 
@@ -439,7 +439,7 @@ function main () --> nil
                 deps = deps.."\n"..dep_name
             end
             if deps != "" then
-                msg_box(TEXT.enabled_deps, 10, 10, deps, 10, 40)
+                msg_box(TEXT.enabled_deps, 10, deps, 40)
             end
             if depends_met then
                 toggle_mod(mods[mod_ids[page*10+index]])

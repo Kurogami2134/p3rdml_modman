@@ -204,3 +204,22 @@ By adding the `Depends` key, any mod may specify other mods they depend on, by l
     Depends="file_replacer;wpn_anim_expansion"
 
 Enabling a mod will automatically enable it's dependencies if necessary. In the current version of the system, however, disabling dependencies will not disable the mods that need them.
+
+#### Install Scripts
+
+Mods may contain "install scripts" to be run when the mod is enabled, such scripts could be used to change settings for mods, add any kind of user input, or just show a splash with info. Install scripts can access the entirety of the language and any and all files in the memory stick. Users should be careful and only use scripts from trusted sources.
+
+    [MOD INFO]
+    Name="MOD NAME"
+    Files="PATCHFILE"
+    Target="FILEID"
+    Type="Patch"
+    Script="mod_folder/settings.lua"
+
+#### Different Language Names
+
+Your mod can also contain different names for different languages. To add a translated name create a field called `Name_lan` where `lan` is the desired language's id. 
+
+    [MOD INFO]
+    Name="MOD NAME"
+    Name_sp="NOMBRE DEL MOD"

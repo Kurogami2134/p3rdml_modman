@@ -42,6 +42,16 @@ function options_screen () --> nil
             },
             key = "language"
         })
+    table.insert(options,
+        {
+            name = TEXT.opt_install_scripts,
+            current = run_install_scripts and 2 or 1,
+            options = {
+                {TEXT.install_script_no, "false"},
+                {TEXT.install_script_ok, "true"}
+            },
+            key = "run_install_scripts"
+        })
     
     frame = 0
     while true do
@@ -58,7 +68,7 @@ function options_screen () --> nil
 
         draw.fillrect(0, y+index*12-12, 480, 14, color.new(50, 232, 1, alpha + 30))
         for _, option in pairs(options) do
-            screen.print(160, y, option.name, 0.6, color.black)
+            screen.print(120, y, option.name, 0.6, color.black)
             screen.print(320 - screen.textwidth(option.options[option.current][1], 0.6) / 2, y, option.options[option.current][1], 0.6, color.black)
             y += 12
         end

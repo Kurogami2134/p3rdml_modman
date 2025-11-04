@@ -12,10 +12,14 @@ function load_list () --> table[str, table[str, any], table[str], int
 
     for _, dirs in ipairs(mod_list) do
         if files.exists(dirs["path"].."/mod.ini") then
-            local mod_name = ini.read(dirs["path"].."/mod.ini", "MOD INFO", "Name", "null")
+            local mod_name = ini.read(dirs["path"].."/mod.ini", "MOD INFO", "Name_"..language, "null")
+            if mod_name == "null" then
+                mod_name = ini.read(dirs["path"].."/mod.ini", "MOD INFO", "Name", "null")
+            end
             local mod_type = ini.read(dirs["path"].."/mod.ini", "MOD INFO", "Type", "null")
             local game_ver = ini.read(dirs["path"].."/mod.ini", "MOD INFO", "Version", "NOHD")
             local dependencies  = ini.read(dirs["path"].."/mod.ini", "MOD INFO", "Depends", "null")
+            local script = ini.read(dirs["path"].."/mod.ini", "MOD INFO", "Script", "null")
             local type5f = (string.sub(mod_type, 1, 5))
             local is_equip = type5f == "Equip"
             if is_equip or (game_ver == "BOTH" or game_ver == game_version) then
@@ -29,7 +33,8 @@ function load_list () --> table[str, table[str, any], table[str], int
                     dest_id = nil,
                     has_audio = has_audio,
                     has_animations = has_animations,
-                    depends = dependencies
+                    depends = dependencies,
+                    script = script
                 }
                 table.insert(mod_ids, string.lower(dirs["name"]))
             end
@@ -174,6 +179,19 @@ function toggle_mod(mod) --> nil
             end
         end
     else --Files, Pack, Code
-        mod["enabled"] = not mod["enabled"]
+        if mod["script"] != "null" then
+            if mod["enabled"] then
+                mod["enabled"] = false
+            else
+                if run_install_scripts then
+                    dofile("MODS/"..mod["script"])
+                    mod["enabled"] = not mod["enabled"]
+                else
+                    msg_box(TEXT.enable_install_scripts, 50)
+                end
+            end
+        else
+            mod["enabled"] = not mod["enabled"]
+        end
     end
 end
