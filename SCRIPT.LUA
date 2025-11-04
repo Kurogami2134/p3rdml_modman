@@ -51,7 +51,7 @@ while true do
         if p3rd_hd_logo then p3rd_hd_logo:blit(246, 61, 1, 1, 222, 150) end
     end
 
-    screen.print(23, 257, "v0.16.0")
+    screen.print(23, 257, "v0.16.0c")
 
     if buttons.right or buttons.left then
         selection = (selection*-1)+1

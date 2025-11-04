@@ -128,9 +128,11 @@ function select_replace (equip_type) --> nil
     if equip_type == "SET" then
         categories = load_set_list()
         cat_names = {"Female_Blademaster", "Female_Gunner", "Female_Generic", "Male_Blademaster", "Male_Gunner", "Male_Generic"}
+        cat_human_names = {TEXT.fem_blade, TEXT.fem_gun, TEXT.fem_gen, TEXT.male_blade, TEXT.male_gun, TEXT.male_gen}
     elseif equip_type == "CATSET" then
         set_names, set_count = load_cat_set_list()
         cat_names = {"Cat"}
+        cat_human_names = {"Felyne"}
         categories = {
             Cat = {
                 names = set_names,
@@ -140,6 +142,7 @@ function select_replace (equip_type) --> nil
     else
         parts, set_names, set_count = load_equipment(equip_type)
         cat_names = {EQUIPMENT_NAMES[equip_type]}
+        cat_human_names = {EQUIPMENT_NAMES[equip_type]}
         categories = {}
         categories[EQUIPMENT_NAMES[equip_type]] = {
             names = set_names,
@@ -175,7 +178,7 @@ function select_replace (equip_type) --> nil
         atlas:draw("r_button", 362, 12)
     end
     
-    screen.print(240 - screen.textwidth(cat_names[cat_idx], 1) / 2, 12, cat_names[cat_idx]:gsub("_", " "), 1, color.black)
+    screen.print(240 - screen.textwidth(cat_human_names[cat_idx], 1) / 2, 12, cat_human_names[cat_idx]:gsub("_", " "), 1, color.black)
     local max = set_count < 15+index_s and set_count or 15+index_s
     y_s = 40
     screen.print(25, y_s, ">", 0.6, color.black)
