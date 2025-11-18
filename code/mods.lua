@@ -8,7 +8,7 @@ function load_list () --> table[str, table[str, any], table[str], int
     loading_screen:blit(0, 0)
     screen.flip()
 
-    local mod_list = files.listdirs("MODS/")
+    local mod_list = files.listdirs(MODS_DIR)
 
     for _, dirs in ipairs(mod_list) do
         if files.exists(dirs["path"].."/mod.ini") then
@@ -22,7 +22,7 @@ function load_list () --> table[str, table[str, any], table[str], int
             local script = ini.read(dirs["path"].."/mod.ini", "MOD INFO", "Script", "null")
             local type5f = (string.sub(mod_type, 1, 5))
             local is_equip = type5f == "Equip"
-            if is_equip or (game_ver == "BOTH" or game_ver == game_version) then
+            if game_ver == game_version or (not (game_version == "FUC") and (is_equip or game_ver == "BOTH")) then
                 local has_audio = is_equip and (ini.read(dirs["path"].."/mod.ini", "MOD INFO", "Audio", "null") != "null")
                 local has_animations = is_equip and (ini.read(dirs["path"].."/mod.ini", "MOD INFO", "Animation", "null") != "null")
                 mods[string.lower(dirs["name"])] = {
@@ -185,7 +185,7 @@ function toggle_mod(mod) --> nil
             else
                 if run_install_scripts then
                     if confirm_msg(TEXT.run_install_script, 50) then
-                        dofile("MODS/"..mod["script"])
+                        dofile(MODS_DIR..mod["script"])
                         mod["enabled"] = not mod["enabled"]
                     end
                 else

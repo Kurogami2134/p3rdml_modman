@@ -32,6 +32,21 @@ end
 
 function sp_text_width(line, size) --> int
     if size == nil then size = 1 end
+    local parts = split(line, "\n")
+    local width = 0
+    local part_width = 0
+    local i
+    for i=1,#parts do
+        part_width = sp_text_line_width(parts[i], size)
+        if part_width > width then
+            width = part_width
+        end
+    end
+    return width
+end
+
+function sp_text_line_width(line, size) --> int
+    if size == nil then size = 1 end
     local parts = split(line, "::")
     local width = 0
     local i

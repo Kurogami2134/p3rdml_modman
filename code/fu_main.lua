@@ -1,7 +1,7 @@
 collectgarbage()
 color.loadpalette()
 
-dofile "code/anim_compiler.lua"
+--dofile "code/anim_compiler.lua"
 dofile "code/select_equipment.lua"
 dofile "code/mods.lua"
 
@@ -11,6 +11,27 @@ SORT_MODES = {TEXT.sort_name, TEXT.sort_type}
 SORTING_KEYS = {"name", "type"}
 
 buttons.interval(10, 10)
+
+function int_to_bytes(int) --> bytes
+    local bin = string.char(int & 0xFF)..string.char((int >> 8) & 0xFF)
+    bin = bin..string.char((int >> 16) & 0xFF)..string.char((int >> 24) & 0xFF)
+    return bin
+end
+
+function create_index(MODS) --> nil
+    table.sort(MODS)
+    local file = io.open("ms0:/"..modloader_root.."/NATIVEPSP/FILE.BIN", "wb")
+    local integer
+    for i=1,207 do
+        integer = 0
+        while #MODS > 0 and math.floor(MODS[1] / 32) == i-1 do
+            integer = integer | (1 << (MODS[1] % 32))
+            table.remove(MODS, 1)
+        end
+        file:write(int_to_bytes(integer))
+    end
+    file:close()
+end
 
 function file_copy(origin, dest, is_file) --> nil
     local target
@@ -29,44 +50,30 @@ function file_copy(origin, dest, is_file) --> nil
     end
     
     file = io.open(target, "wb")
+    file:write(int_to_bytes(#file_data))
     file:write(file_data)
     file:close()
 end
 
 function clear_files () --> nil
-    files.delete("ms0:/"..modloader_root.."/FILES/")
-    files.mkdir("ms0:/"..modloader_root.."/FILES/")
+    files.delete("ms0:/"..modloader_root.."/NATIVEPSP/")
+    files.mkdir("ms0:/"..modloader_root.."/NATIVEPSP/")
 end
 
 function copy_file (mod, origin, dest) --> nil
-    if files.exists("ms0:/"..modloader_root.."/FILES/"..dest) then
-        files.delete("ms0:/"..modloader_root.."/FILES/"..dest)
+    if files.exists("ms0:/"..modloader_root.."/NATIVEPSP/"..dest) then
+        files.delete("ms0:/"..modloader_root.."/NATIVEPSP/"..dest)
     end
-    file_copy(MODS_DIR..mod.."/"..origin, "ms0:/"..modloader_root.."/FILES/"..dest, true)
-    --files.rename("ms0:/"..modloader_root.."/files/"..files.nopath(origin), "ms0:/"..modloader_root.."/files/"..dest)
+    file_copy(MODS_DIR..mod.."/"..origin, "ms0:/"..modloader_root.."/NATIVEPSP/"..dest, true)
 end
 
 function get_target(mod_id) --> str
     local target = ini.read(MODS_DIR..mod_id.."/mod.ini", "MOD INFO", "Target", "null")
-    if game_version == "HD" then
-        local target_hd = ini.read(MODS_DIR..mod_id.."/mod.ini", "MOD INFO", "TargetHD", "null")
-        if target_hd != "null" then
-            target = target_hd
-        end
-    end
-
     return target
 end
 
 function get_mod_files(mod_id) --> str
     local file = ini.read(MODS_DIR..mod_id.."/mod.ini", "MOD INFO", "Files", "null")
-    if game_version == "HD" then
-        local file_hd = ini.read(MODS_DIR..mod_id.."/mod.ini", "MOD INFO", "FilesHD", "null")
-        if file_hd != "null" then
-            file = file_hd
-        end
-    end
-
     return file
 end
 
@@ -74,19 +81,17 @@ function install_mods (mods) --> nil
     save_enabled(mods)
 
     if not files.exists("ms0:/"..modloader_root) then
+        files.mkdir("ms0:/PSP")
+        files.mkdir("ms0:/PSP/SAVEDATA")
         files.mkdir("ms0:/"..modloader_root)
-        files.mkdir("ms0:/"..modloader_root.."/FILES")
-        files.mkdir("ms0:/"..modloader_root.."/MODS")
+        files.mkdir("ms0:/"..modloader_root.."/NATIVE_PSP")
     end
 
     local replaced = ""
+    replaced_files = {}
     local dest_ids = ""
-    local code_mods  = {}
-    local anim_mods  = {}
     local file_mods  = {}
     local set_mods   = {}
-    local cat_set_mods   = {}
-    local patch_mods = {}
     
     local do_build_patches = false
     local compile_anims = false
@@ -96,29 +101,13 @@ function install_mods (mods) --> nil
     for mod, info in pairs(mods) do
         if info["enabled"] then
             if info["type"] == "Pack" then
-            elseif info["type"] == "Code" then
-                table.insert(code_mods, mod)
-            elseif info["type"] == "Patch" then
-                do_build_patches = true
-
-                file = split(get_mod_files(mod), ";")
-                target = split(get_target(mod), ";")
-                for i=1,#file do
-                    if patch_mods[target[i]] == nil then
-                        patch_mods[target[i]] = {}
-                    end
-                    table.insert(patch_mods[target[i]], {mod, file[i]})
-                end
             elseif info["type"] == "EquipSET" then
                 dest_ids = dest_ids..mod..":"..info["dest_id"]..";"
                 file = split(get_mod_files(mod), ";")
                 table.insert(set_mods, {mod, info["dest_id"], split(info["dest"], ","), file})
-            elseif info["type"] == "EquipCATSET" then
-                dest_ids = dest_ids..mod..":"..info["dest_id"]..";"
-                file = split(get_mod_files(mod), ";")
-                table.insert(cat_set_mods, {mod, info["dest_id"], split(info["dest"], ","), file})
             elseif info["dest"] != nil then
                 replaced = replaced..mod..info["dest"]..";"
+                table.insert(replaced_files, info["dest"])
                 file = get_mod_files(mod)
                 copy_file(mod, file, info["dest"])
                 
@@ -126,20 +115,20 @@ function install_mods (mods) --> nil
                     dest_ids = dest_ids..mod..":"..info["dest_id"]..";"
                 end
 
-                if info["dest_id"] != nil and info["has_animations"] then
-                    anim_mods[mod] = info["dest_id"]
-                    compile_anims = true
-                end
+                --if info["dest_id"] != nil and info["has_animations"] then
+                --    anim_mods[mod] = info["dest_id"]
+                --    compile_anims = true
+                --end
 
-                if info["dest_id"] != nil and info["has_audio"] then
-                    local audio = split(ini.read(MODS_DIR..mod.."/mod.ini", "MOD INFO", "Audio", "null"), ";")
+                --if info["dest_id"] != nil and info["has_audio"] then
+                --    local audio = split(ini.read(MODS_DIR..mod.."/mod.ini", "MOD INFO", "Audio", "null"), ";")
 
-                    local header = ini.read(data_dir.."/AUDIO/"..string.sub(info["type"], 6, -1)..".ini", "header"..info["dest_id"], "null")
-                    local bin = ini.read(data_dir.."/AUDIO/"..string.sub(info["type"], 6, -1)..".ini", "bin"..info["dest_id"], "null")
+                --    local header = ini.read(data_dir.."/AUDIO/"..string.sub(info["type"], 6, -1)..".ini", "header"..info["dest_id"], "null")
+                --    local bin = ini.read(data_dir.."/AUDIO/"..string.sub(info["type"], 6, -1)..".ini", "bin"..info["dest_id"], "null")
 
-                    copy_file(mod, audio[1], header)
-                    copy_file(mod, audio[2], bin)
-                end
+                --    copy_file(mod, audio[1], header)
+                --    copy_file(mod, audio[2], bin)
+                --end
             elseif info["dest"] == nil then
                 table.insert(file_mods, mod)
             end
@@ -148,63 +137,22 @@ function install_mods (mods) --> nil
 
     ini.write(replaced_db, "files", replaced)
     ini.write(dest_ids_db, "ids", dest_ids)
-    if do_build_patches then
-        build_patches(patch_mods)
-    end
     if #file_mods > 0 then
         replace_files(file_mods)
     end
     if #set_mods > 0 then
         copy_sets(set_mods)
     end
-    if #cat_set_mods > 0 then
-        copy_cat_sets(cat_set_mods)
-    end
-    if #code_mods > 0 then
-        build_mods_bin(code_mods)
-    end
-    if compile_anims then
-        build_animations(anim_mods)
-    end
+    create_index(replaced_files)
 
     msg_box(TEXT.mods_applied, 50)
-end
-
-function build_patches (patch_mods)  --> nil
-    local target, patch, file, patches, data
-    for target, patches in pairs(patch_mods) do
-        local data = ""
-        for _, patch in pairs(patches) do
-            file = io.open(MODS_DIR..patch[1].."/"..patch[2], "rb")
-            data = data..file:read("*all")
-            file:close()
-        end
-        
-        file = io.open("ms0:/"..modloader_root.."/FILES/"..target.."P", "wb")
-        file:write(data)
-        file:write(int_to_bytes(-1)..int_to_bytes(0))
-        file:close()
-    end
 end
 
 function copy_sets(set_mods) --> nil
     for _, mod in pairs(set_mods) do
         for i=1,5 do
             if mod[3][i] != "null" and mod[4][i] != "null" then
-                copy_file(mod[1], mod[4][i], mod[3][i])
-            end
-        end
-    end
-end
-
-function copy_cat_sets(set_mods) --> nil
-    for _, mod in pairs(set_mods) do
-        for i=1,2 do
-            if not mod[3][i] then
-                debug_msg = "huh?"
-                dofile"debug.lua"
-            end
-            if mod[3][i] != "null" and mod[4][i] != "null" then
+                table.insert(replaced_files, mod[3][i])
                 copy_file(mod[1], mod[4][i], mod[3][i])
             end
         end
@@ -228,40 +176,10 @@ function replace_files (file_mods) --> nil
         end
         
         for i, dest in pairs(targets) do
+            table.insert(replaced_files, dest)
             copy_file(mod, replacements[i], dest)
         end
     end
-end
-
-function build_animations (anim_mods) --> nil
-    local animations = {}
-    --local mods = ""
-    for mod, mdl_id in pairs(anim_mods) do
-        --mods = mods..mod..":"..mdl_id..";"
-        local animpath = MODS_DIR..mod.."/"..ini.read(MODS_DIR..mod.."/mod.ini", "MOD INFO", "Animation", "null")
-        table.insert(animations, {animpath, mdl_id})
-    end
-    --ini.write(anim_db, "Anim", mods)
-    build_anim_pack(animations)
-end
-
-function build_mods_bin (mod_list) --> nil
-    local mod_files, file_name, file
-    file = io.open("ms0:/"..modloader_root.."/MODS.BIN", "w")
-
-    for _, mod in pairs(mod_list) do
-        mod_files = get_mod_files(mod)
-        for mod_file in string.gmatch(mod_files, "([^';']+)") do
-            file_name = string.upper(files.nopath(mod_file))
-            file:write(string.char(string.len(file_name)+2))
-            file:write("/"..file_name..string.char(0))
-
-            file_copy(MODS_DIR..mod.."/"..mod_file, "ms0:/"..modloader_root.."/MODS", false)
-        end
-    end
-
-    file:write(string.char(255))
-    file:close()
 end
 
 function main () --> nil
