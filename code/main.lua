@@ -5,7 +5,8 @@ dofile "code/anim_compiler.lua"
 dofile "code/select_equipment.lua"
 dofile "code/mods.lua"
 
-if not bg then bg=image.load("assets/mm_background.png") end
+if not (bg and mmbg == "P3RD") then bg=image.load("assets/mm_background.png") end
+mmbg = "P3RD"
 
 SORT_MODES = {TEXT.sort_name, TEXT.sort_type}
 SORTING_KEYS = {"name", "type"}
