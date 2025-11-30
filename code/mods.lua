@@ -179,21 +179,6 @@ function toggle_mod(mod) --> nil
             end
         end
     else --Files, Pack, Code
-        if mod["script"] != "null" then
-            if mod["enabled"] then
-                mod["enabled"] = false
-            else
-                if run_install_scripts then
-                    if confirm_msg(TEXT.run_install_script, 50) then
-                        dofile(MODS_DIR..mod["script"])
-                        mod["enabled"] = not mod["enabled"]
-                    end
-                else
-                    msg_box(TEXT.enable_install_scripts, 50)
-                end
-            end
-        else
-            mod["enabled"] = not mod["enabled"]
-        end
+        mod["enabled"] = not mod["enabled"]
     end
 end

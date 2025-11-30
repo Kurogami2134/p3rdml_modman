@@ -304,34 +304,12 @@ function main () --> nil
 
     screen.print(49, 53, TEXT.mod_list, 0.6, color.yellow)
     screen.print(216, 53, (page+1).."/"..pages, 0.6)
-
-    local r_offset = 472 - screen.textwidth(TEXT.exit, 0.6)
-    screen.print(r_offset, 257, TEXT.exit, 0.6)
     
-    if circle_to_confirm then
-        r_offset = r_offset - 16
-        atlas:draw("cross", r_offset - 16, 257)
-        r_offset = r_offset - screen.textwidth(TEXT.toggle, 0.6) - 2
-        screen.print(r_offset, 257, TEXT.toggle, 0.6)
-        r_offset = r_offset - 16
-        atlas:draw("circle", r_offset, 257)
-    else
-        r_offset = r_offset - 16
-        atlas:draw("circle", r_offset, 257)
-        r_offset = r_offset - screen.textwidth(TEXT.toggle, 0.6) - 2
-        screen.print(r_offset, 257, TEXT.toggle, 0.6)
-        r_offset = r_offset - 16
-        atlas:draw("cross", r_offset, 257)
+    local input_msg = " ::triangle::"..TEXT.apply.." ::square::"..TEXT.clear_and_apply..(circle_to_confirm and " ::circle::"..TEXT.toggle.." ::cross::"..TEXT.exit or " ::cross::"..TEXT.toggle.." ::circle::"..TEXT.exit)
+    if mods[mod_ids[page*10+index]]["script"] != "null" then
+        input_msg = " ::start::"..TEXT.options..input_msg
     end
-    
-    r_offset = r_offset - screen.textwidth(TEXT.apply, 0.6) - 2
-    screen.print(r_offset, 257, TEXT.apply, 0.6)
-    r_offset = r_offset - 16
-    atlas:draw("triangle", r_offset, 257)
-    r_offset = r_offset - screen.textwidth(TEXT.clear_and_apply, 0.6) - 2
-    screen.print(r_offset, 257, TEXT.clear_and_apply, 0.6)
-    r_offset = r_offset - 16
-    atlas:draw("square", r_offset, 257)
+    sp_print(input_msg, 476-sp_text_width(input_msg, 0.6), 257, 0.6)
     
     screen.print(23, 257, SORT_MODES[sort_mode])
     if reverse_sort then
@@ -455,6 +433,16 @@ function main () --> nil
         reverse_sort = not reverse_sort
         mod_ids = sort_mods(mods, mod_ids, SORTING_KEYS[sort_mode], reverse_sort)
         frame = 0
+    elseif buttons.start then
+        if mods[mod_ids[page*10+index]]["script"] != "null" then
+            if run_install_scripts then
+                if confirm_msg(TEXT.run_install_script, 50) then
+                    dofile(MODS_DIR..mods[mod_ids[page*10+index]]["script"])
+                end
+            else
+                msg_box(TEXT.enable_install_scripts, 50)
+            end
+        end
     elseif (circle_to_confirm and buttons.cross) or (not circle_to_confirm and buttons.circle) then -- cancel button
         break
     end

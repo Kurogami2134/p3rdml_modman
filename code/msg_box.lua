@@ -13,15 +13,16 @@ function split(str, sep) --> table[string]
     return res
 end
 
-function sp_print(line, x, y, size) --> nil
+function sp_print(line, x, y, size, col) --> nil
     if x == nil then x = 0 end
     if y == nil then y = 0 end
+    if col == nil then col = color.white end
     if size == nil then size = 1 end
     local parts = split(line, "::")
     local i
     for i=1,#parts do
         if i%2 == 1 then
-            screen.print(x, y, parts[i], size)
+            screen.print(x, y, parts[i], size, col)
             x += screen.textwidth(parts[i], size)
         else
             atlas:draw(parts[i], x, y)
