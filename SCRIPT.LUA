@@ -44,7 +44,7 @@ while true do
         if fuc_logo then fuc_logo:blit(369, 1, 1, 1, 109, 61) end
     end
 
-    screen.print(23, 257, "v0.18.2")
+    screen.print(23, 257, "v0.18.3")
 
     if buttons.right then
         selection = selection + 1

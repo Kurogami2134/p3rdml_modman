@@ -55,5 +55,6 @@ TEXT = {
     enable_install_scripts = "Activa los Scripts de Ajustes",
     enabled_deps = "Dependencias Activadas",
     mods_applied = "Mods Aplicados",
-    no_mods = "No se encontrar mods",
+    no_mods = "No se encontraron mods",
+    always_clear = "Siempre limpiar archivos",
 }

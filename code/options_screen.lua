@@ -44,6 +44,16 @@ function options_screen () --> nil
         })
     table.insert(options,
         {
+            name = TEXT.always_clear,
+            current = always_clear and 2 or 1,
+            options = {
+                {TEXT.no, "false"},
+                {TEXT.yes, "true"}
+            },
+            key = "always_clear"
+        })
+    table.insert(options,
+        {
             name = TEXT.opt_install_scripts,
             current = run_install_scripts and 2 or 1,
             options = {

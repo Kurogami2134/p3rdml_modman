@@ -305,7 +305,7 @@ function main () --> nil
     screen.print(49, 53, TEXT.mod_list, 0.6, color.yellow)
     screen.print(216, 53, (page+1).."/"..pages, 0.6)
     
-    local input_msg = " ::triangle::"..TEXT.apply.." ::square::"..TEXT.clear_and_apply..(circle_to_confirm and " ::circle::"..TEXT.toggle.." ::cross::"..TEXT.exit or " ::cross::"..TEXT.toggle.." ::circle::"..TEXT.exit)
+    local input_msg = " ::triangle::"..TEXT.apply..(always_clear and "" or " ::square::"..TEXT.clear_and_apply)..(circle_to_confirm and " ::circle::"..TEXT.toggle.." ::cross::"..TEXT.exit or " ::cross::"..TEXT.toggle.." ::circle::"..TEXT.exit)
     if mods[mod_ids[page*10+index]]["script"] != "null" then
         input_msg = " ::start::"..TEXT.options..input_msg
     end
@@ -417,10 +417,10 @@ function main () --> nil
         else
             toggle_mod(mods[mod_ids[page*10+index]])
         end
-    elseif buttons.triangle then
-        install_mods(mods)
-    elseif buttons.square then
+    elseif buttons.square or (buttons.triangle and always_clear) then
         clear_files()
+        install_mods(mods)
+    elseif buttons.triangle then
         install_mods(mods)
     elseif buttons.r then
         sort_mode += 1

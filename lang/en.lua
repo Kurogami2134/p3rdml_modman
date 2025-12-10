@@ -56,4 +56,5 @@ TEXT = {
     enabled_deps = "Enabled Dependecies",
     mods_applied = "Mods Applied",
     no_mods = "No mods found",
+    always_clear = "Always clear files",
 }
