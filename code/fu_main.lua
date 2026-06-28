@@ -4,6 +4,7 @@ color.loadpalette()
 dofile "code/anim_compiler.lua"
 dofile "code/select_equipment.lua"
 dofile "code/mods.lua"
+dofile "code/utils.lua"
 
 if not (bg and mmbg == "FUC") then bg=image.load("assets/fu_mm_background.png") end
 mmbg = "FUC"
@@ -12,12 +13,6 @@ SORT_MODES = {TEXT.sort_name, TEXT.sort_type}
 SORTING_KEYS = {"name", "type"}
 
 buttons.interval(10, 10)
-
-function int_to_bytes(int) --> bytes
-    local bin = string.char(int & 0xFF)..string.char((int >> 8) & 0xFF)
-    bin = bin..string.char((int >> 16) & 0xFF)..string.char((int >> 24) & 0xFF)
-    return bin
-end
 
 function create_index(MODS) --> nil
     table.sort(MODS)
@@ -34,29 +29,6 @@ function create_index(MODS) --> nil
     file:close()
 end
 
-function file_copy(origin, dest, is_file, save_size) --> nil
-    local target
-    if not is_file and not files.exists(dest) then
-        files.mkdir(dest)
-    end
-
-    local file = io.open(origin, "rb")
-    local file_data = file:read("*all")
-    file:close()
-    
-    if is_file then
-        target = dest
-    else
-        target = dest.."/"..string.upper(files.nopath(origin))
-    end
-    
-    file = io.open(target, "wb")
-    if save_size then
-        file:write(int_to_bytes(#file_data))
-    end
-    file:write(file_data)
-    file:close()
-end
 
 function clear_files () --> nil
     files.delete("ms0:/"..modloader_root.."/NATIVEPSP/")
@@ -203,39 +175,6 @@ function build_animations (anim_mods) --> nil
     build_anim_pack(animations, true)
 end
 
-function copy_sets(set_mods) --> nil
-    for _, mod in pairs(set_mods) do
-        for i=1,5 do
-            if mod[3][i] != "null" and mod[4][i] != "null" then
-                table.insert(replaced_files, mod[3][i])
-                copy_file(mod[1], mod[4][i], mod[3][i])
-            end
-        end
-    end
-end
-
-function replace_files (file_mods) --> nil
-    local target, files
-    for _, mod in pairs(file_mods) do
-        local targets = {}
-        local replacements = {}
-
-        target = get_target(mod)
-        files = get_mod_files(mod)
-
-        for file in string.gmatch(target, "([^;]+)") do
-            table.insert(targets, file)
-        end
-        for file in string.gmatch(files, "([^;]+)") do
-            table.insert(replacements, file)
-        end
-        
-        for i, dest in pairs(targets) do
-            table.insert(replaced_files, dest)
-            copy_file(mod, replacements[i], dest)
-        end
-    end
-end
 
 function main () --> nil
     local mods, mod_ids, mod_count = load_list()
@@ -356,39 +295,7 @@ function main () --> nil
     end
 
     if (circle_to_confirm and buttons.circle) or (not circle_to_confirm and buttons.cross) then -- confirm button
-        local dep_name, deps = "", nil
-        local missing_deps = ""
-        local enabled_deps = {}
-        local depends_met = true
-        if not mods[mod_ids[page*10+index]]["enabled"] and mods[mod_ids[page*10+index]]["depends"] != "null" then
-            aux_deps = {}
-            deps = remove_duplicates(get_deps(mods, mod_ids[page*10+index], "", 10))
-            for _, mod in pairs(deps) do
-                if mods[mod] then
-                    if not mods[mod]["enabled"] then
-                        toggle_mod(mods[mod])
-                        table.insert(enabled_deps, mods[mod]["name"])
-                    end
-                else
-                    missing_deps = missing_deps..mod.."\n"
-                    depends_met = false
-                end
-            end
-            deps = ""
-            for _, dep_name in pairs(enabled_deps) do
-                deps = deps.."\n"..dep_name
-            end
-            if deps != "" then
-                msg_box(TEXT.enabled_deps, 10, deps, 40)
-            end
-            if depends_met then
-                toggle_mod(mods[mod_ids[page*10+index]])
-            else
-                msg_box(TEXT.missing_deps, 10, missing_deps, 40)
-            end
-        else
-            toggle_mod(mods[mod_ids[page*10+index]])
-        end
+        toggle_mod_and_deps()
     elseif buttons.triangle then
         install_mods(mods)
     elseif buttons.square then

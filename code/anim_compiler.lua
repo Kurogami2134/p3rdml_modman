@@ -81,6 +81,7 @@ function build_anim_pack (anims, fu) --> bytes
         file = io.open("ms0:/"..modloader_root.."/MMMODS/SPANIMPACK.BIN", "wb")
     else
         file = io.open("ms0:/"..modloader_root.."/MODS/SPANIMPACK.BIN", "wb")
+        file:write("0.01"..int_to_bytes(0))
     end
     file:write(int_to_bytes(anim_start_offset)..int_to_bytes(#entries+4+#anim_data))
     file:write(entries.."\255\255\255\255")

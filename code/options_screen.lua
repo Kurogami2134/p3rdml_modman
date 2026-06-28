@@ -62,6 +62,16 @@ function options_screen () --> nil
             },
             key = "run_install_scripts"
         })
+    table.insert(options,
+        {
+            name = TEXT.use_ppsspp_ver,
+            current = use_ppsspp_ver and 2 or 1,
+            options = {
+                {TEXT.use_ppsspp_ver_no, "false"},
+                {TEXT.use_ppsspp_ver_yes, "true"}
+            },
+            key = "use_ppsspp_ver"
+        })
     
     frame = 0
     while true do

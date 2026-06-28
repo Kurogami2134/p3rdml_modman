@@ -20,6 +20,7 @@ function load_list () --> table[str, table[str, any], table[str], int
             local game_ver = ini.read(dirs["path"].."/mod.ini", "MOD INFO", "Version", "NOHD")
             local dependencies  = ini.read(dirs["path"].."/mod.ini", "MOD INFO", "Depends", "null")
             local script = ini.read(dirs["path"].."/mod.ini", "MOD INFO", "Script", "null")
+            local hidden = ini.read(dirs["path"].."/mod.ini", "MOD INFO", "Hidden", "null") == "True"
             local priority = ini.read(dirs["path"].."/mod.ini", "MOD INFO", "Priority", "3")
             local type5f = (string.sub(mod_type, 1, 5))
             local is_equip = type5f == "Equip"
@@ -36,20 +37,21 @@ function load_list () --> table[str, table[str, any], table[str], int
                     has_animations = has_animations,
                     depends = dependencies,
                     priority = priority,
-                    script = script
+                    script = script,
+                    hidden = hidden
                 }
                 table.insert(mod_ids, string.lower(dirs["name"]))
             end
         end
     end
 
-    mod_ids = sort_mods(mods, mod_ids, "name", false)
+    mod_ids, hidden = sort_mods(mods, mod_ids, "name", false)
 
-    return load_dest_ids(load_replaced(load_enabled(mods))), mod_ids, #mod_ids
+    return load_dest_ids(load_replaced(load_enabled(mods))), mod_ids, #mod_ids - hidden
 end
 
 function sort_mods (mods, mod_ids, key, reverse) --> table[str]
-    local keys, aux, m_id, sorted_ids
+    local keys, aux, m_id, sorted_ids, hidden_ids
     keys = {}
     aux = {}
     for _, m_id in pairs(mod_ids) do
@@ -63,12 +65,20 @@ function sort_mods (mods, mod_ids, key, reverse) --> table[str]
         table.sort(keys)
     end
 
+    hidden_ids = {}
     sorted_ids = {}
     for _, v in pairs(keys) do
-        table.insert(sorted_ids, aux[v])
+        if mods[aux[v]].hidden then
+            table.insert(hidden_ids, aux[v])
+        else
+            table.insert(sorted_ids, aux[v])
+        end
+    end
+    for _, v in pairs(hidden_ids) do
+        table.insert(sorted_ids, v)
     end
     
-    return sorted_ids
+    return sorted_ids, #hidden_ids
 end
 
 function load_dest_ids (mods) --> table[str, {str, bool}]
@@ -167,8 +177,11 @@ function remove_duplicates(input) --> table
     return res
 end
 
-function toggle_mod(mod) --> nil
+function toggle_mod(mod, state) --> nil
     local dest, dest_id
+    if state != nil and state == mod.enabled then
+        return
+    end
     if string.sub(mod["type"], 1, 5) == "Equip" then
         if mod["enabled"] then
             mod["enabled"] = false

@@ -198,6 +198,8 @@ Adding the `Version` key allows the mod manager to correctly load only mods that
 
 * Mods using `BOTH` as their version may include `FilesHD` and `TargetHD` as keys specifying files relating to the hd version only.
 
+* FilesOG may be used to add original hardware specific versions for mods.
+
 * If the `Version` key is omitted the mod manager will asume it's `NOHD`
 
 #### Description

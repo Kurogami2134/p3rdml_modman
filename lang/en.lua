@@ -59,5 +59,8 @@ TEXT = {
     mods_applied = "Mods Applied",
     no_mods = "No mods found",
     always_clear = "Always clear files",
+    use_ppsspp_ver = "Always use PPSSPP Versions",
+    use_ppsspp_ver_yes = "Yes",
+    use_ppsspp_ver_no = "No",
     invalid_iso = "Invalid ISO",
 }

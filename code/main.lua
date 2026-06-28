@@ -4,6 +4,7 @@ color.loadpalette()
 dofile "code/anim_compiler.lua"
 dofile "code/select_equipment.lua"
 dofile "code/mods.lua"
+dofile "code/utils.lua"
 
 if not (bg and mmbg == "P3RD") then bg=image.load("assets/mm_background.png") end
 mmbg = "P3RD"
@@ -13,26 +14,6 @@ SORTING_KEYS = {"name", "type"}
 
 buttons.interval(10, 10)
 
-function file_copy(origin, dest, is_file) --> nil
-    local target
-    if not is_file and not files.exists(dest) then
-        files.mkdir(dest)
-    end
-
-    local file = io.open(origin, "rb")
-    local file_data = file:read("*all")
-    file:close()
-    
-    if is_file then
-        target = dest
-    else
-        target = dest.."/"..string.upper(files.nopath(origin))
-    end
-    
-    file = io.open(target, "wb")
-    file:write(file_data)
-    file:close()
-end
 
 function clear_files () --> nil
     files.delete("ms0:/"..modloader_root.."/FILES/")
@@ -65,6 +46,11 @@ function get_mod_files(mod_id) --> str
         local file_hd = ini.read(MODS_DIR..mod_id.."/mod.ini", "MOD INFO", "FilesHD", "null")
         if file_hd != "null" then
             file = file_hd
+        end
+    elseif (not use_ppsspp_ver) and os.cfw() != "PPSSPP" then
+        local file_og = ini.read(MODS_DIR..mod_id.."/mod.ini", "MOD INFO", "FilesOG", "null")
+        if file_og != "null" then
+            file = file_og
         end
     end
 
@@ -189,21 +175,13 @@ function build_patches (patch_mods)  --> nil
         end
         
         file = io.open("ms0:/"..modloader_root.."/FILES/"..target.."P", "wb")
+        file:write("0.01")
         file:write(data)
-        file:write(int_to_bytes(-1)..int_to_bytes(0))
+        file:write(int_to_bytes(-1))
         file:close()
     end
 end
 
-function copy_sets(set_mods) --> nil
-    for _, mod in pairs(set_mods) do
-        for i=1,5 do
-            if mod[3][i] != "null" and mod[4][i] != "null" then
-                copy_file(mod[1], mod[4][i], mod[3][i])
-            end
-        end
-    end
-end
 
 function copy_cat_sets(set_mods) --> nil
     for _, mod in pairs(set_mods) do
@@ -394,38 +372,11 @@ function main () --> nil
     end
 
     if (circle_to_confirm and buttons.circle) or (not circle_to_confirm and buttons.cross) then -- confirm button
-        local dep_name, deps = "", nil
-        local missing_deps = ""
-        local enabled_deps = {}
-        local depends_met = true
-        if not mods[mod_ids[page*10+index]]["enabled"] and mods[mod_ids[page*10+index]]["depends"] != "null" then
-            aux_deps = {}
-            deps = remove_duplicates(get_deps(mods, mod_ids[page*10+index], "", 10))
-            for _, mod in pairs(deps) do
-                if mods[mod] then
-                    if not mods[mod]["enabled"] then
-                        toggle_mod(mods[mod])
-                        table.insert(enabled_deps, mods[mod]["name"])
-                    end
-                else
-                    missing_deps = missing_deps..mod.."\n"
-                    depends_met = false
-                end
-            end
-            deps = ""
-            for _, dep_name in pairs(enabled_deps) do
-                deps = deps.."\n"..dep_name
-            end
-            if deps != "" then
-                msg_box(TEXT.enabled_deps, 10, deps, 40)
-            end
-            if depends_met then
-                toggle_mod(mods[mod_ids[page*10+index]])
-            else
-                msg_box(TEXT.missing_deps, 10, missing_deps, 40)
-            end
+        if mods[mod_ids[page*10+index]].type == "Pack" then
+            toggle_mod_list(mods, get_field(mod_ids[page*10+index], "ModList"), not mods[mod_ids[page*10+index]].enabled)
+            mods[mod_ids[page*10+index]].enabled = not mods[mod_ids[page*10+index]].enabled
         else
-            toggle_mod(mods[mod_ids[page*10+index]])
+            toggle_mod_and_deps(mods, mod_ids[page*10+index])
         end
     elseif buttons.square or (buttons.triangle and always_clear) then
         clear_files()
