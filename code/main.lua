@@ -161,6 +161,8 @@ function install_mods (mods) --> nil
         build_animations(anim_mods)
     end
 
+    file_copy(data_dir.."/PRELOAD.BIN", "ms0:/"..modloader_root, false)
+
     msg_box(TEXT.mods_applied, 50)
 end
 
