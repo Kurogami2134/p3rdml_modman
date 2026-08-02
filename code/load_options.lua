@@ -6,6 +6,7 @@ language = "en"
 run_install_scripts = false
 always_clear = true
 use_ppsspp_ver = false
+cached_loading = true
 
 function load_options () --> nil
     circle_to_confirm = "true" == ini.read("user/options.ini", "circle_to_confirm", "false")
@@ -14,6 +15,7 @@ function load_options () --> nil
     run_install_scripts = "true" == ini.read("user/options.ini", "run_install_scripts", "false")
     always_clear = "true" == ini.read("user/options.ini", "always_clear", "false")
     use_ppsspp_ver = "true" == ini.read("user/options.ini", "use_ppsspp_ver", "false")
+    cached_loading = "true" == ini.read("user/options.ini", "cached_loading", "true")
 
     dofile("lang/"..language..".lua")
 end

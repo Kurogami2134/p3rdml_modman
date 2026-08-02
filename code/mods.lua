@@ -1,7 +1,54 @@
+json = require "code/json"
+
 if not loading_screen then loading_screen=image.load("assets/loading_screen.png") end
 
-function load_list () --> table[str, table[str, any], table[str], int
-    local mod_name, mod_type, game_ver
+function cached_load_list () --> table[str, table[str, any], table[str], int
+    local mods = {}
+    local mod_ids = {}
+
+    loading_screen:blit(0, 0)
+    screen.flip()
+
+
+    -- Load cache
+    if files.exists("user/mod_data_"..game_version..".json") then
+        local file = io.open("user/mod_data_"..game_version..".json", "r")
+        mods = json.decode(file:read("*a"))
+        file:close()
+        local file = io.open("user/mod_list_"..game_version..".json", "r")
+        mod_ids = json.decode(file:read("*a"))
+        file:close()
+    end
+
+    local dir_list = files.listdirs(MODS_DIR)
+    local mod_list = {}
+    for _, dirs in ipairs(dir_list) do
+        if not mods[string.lower(dirs["name"])] then
+            table.insert(mod_list, dirs)
+        end
+    end
+    for i, m_id in pairs(mod_ids) do
+        if not files.exists(MODS_DIR.."/"..m_id) then
+            table.remove(mod_ids, i)
+        end
+    end
+    
+    load_list(mods, mod_ids, mod_list)
+
+    -- Save cache
+    local file = io.open("user/mod_data_"..game_version..".json", "w")
+    file:write(json.encode(mods))
+    file:close()
+    local file = io.open("user/mod_list_"..game_version..".json", "w")
+    file:write(json.encode(mod_ids))
+    file:close()
+
+    mod_ids, hidden = sort_mods(mods, mod_ids, "name", false)
+
+    return load_dest_ids(load_replaced(load_enabled(mods))), mod_ids, #mod_ids - hidden
+end
+
+function uncached_load_list () --> table[str, table[str, any], table[str], int
     local mods = {}
     local mod_ids = {}
 
@@ -10,33 +57,45 @@ function load_list () --> table[str, table[str, any], table[str], int
 
     local mod_list = files.listdirs(MODS_DIR)
 
+    load_list(mods, mod_ids, mod_list)
+
+    mod_ids, hidden = sort_mods(mods, mod_ids, "name", false)
+
+    return load_dest_ids(load_replaced(load_enabled(mods))), mod_ids, #mod_ids - hidden
+end
+
+function load_list (mods, mod_ids, mod_list)
+    local mod_name, mod_type, game_ver
     for _, dirs in ipairs(mod_list) do
         if files.exists(dirs["path"].."/mod.ini") then
-            local mod_name = ini.read(dirs["path"].."/mod.ini", "MOD INFO", "Name_"..language, "null")
-            if mod_name == "null" then
-                mod_name = ini.read(dirs["path"].."/mod.ini", "MOD INFO", "Name", "null")
-            end
-            local mod_type = ini.read(dirs["path"].."/mod.ini", "MOD INFO", "Type", "null")
             local game_ver = ini.read(dirs["path"].."/mod.ini", "MOD INFO", "Version", "NOHD")
-            local dependencies  = ini.read(dirs["path"].."/mod.ini", "MOD INFO", "Depends", "null")
-            local script = ini.read(dirs["path"].."/mod.ini", "MOD INFO", "Script", "null")
-            local hidden = ini.read(dirs["path"].."/mod.ini", "MOD INFO", "Hidden", "null") == "True"
-            local priority = ini.read(dirs["path"].."/mod.ini", "MOD INFO", "Priority", "3")
+            local mod_type = ini.read(dirs["path"].."/mod.ini", "MOD INFO", "Type", "null")
             local type5f = (string.sub(mod_type, 1, 5))
             local is_equip = type5f == "Equip"
+            
             if game_ver == game_version or (not (game_version == "FUC") and (is_equip or game_ver == "BOTH")) then
-                local has_audio = is_equip and (ini.read(dirs["path"].."/mod.ini", "MOD INFO", "Audio", "null") != "null")
-                local has_animations = is_equip and (ini.read(dirs["path"].."/mod.ini", "MOD INFO", "Animation", "null") != "null")
+
+                local mod_name = ini.read(dirs["path"].."/mod.ini", "MOD INFO", "Name_"..language, "null")
+                if mod_name == "null" then
+                    mod_name = ini.read(dirs["path"].."/mod.ini", "MOD INFO", "Name", "null")
+                end
+                --local dependencies  = ini.read(dirs["path"].."/mod.ini", "MOD INFO", "Depends", "null")
+                local script = ini.read(dirs["path"].."/mod.ini", "MOD INFO", "Script", "null")
+                local hidden = ini.read(dirs["path"].."/mod.ini", "MOD INFO", "Hidden", "null") == "True"
+                --local priority = ini.read(dirs["path"].."/mod.ini", "MOD INFO", "Priority", "3")
+                
+                -- local has_audio = is_equip and (ini.read(dirs["path"].."/mod.ini", "MOD INFO", "Audio", "null") != "null")
+                -- local has_animations = is_equip and (ini.read(dirs["path"].."/mod.ini", "MOD INFO", "Animation", "null") != "null")
                 mods[string.lower(dirs["name"])] = {
                     name = mod_name, 
                     enabled = false, 
                     type = mod_type, 
                     dest = nil, 
                     dest_id = nil,
-                    has_audio = has_audio,
-                    has_animations = has_animations,
-                    depends = dependencies,
-                    priority = priority,
+                    -- has_audio = has_audio,
+                    -- has_animations = has_animations,
+                    --depends = dependencies,
+                    --priority = priority,
                     script = script,
                     hidden = hidden
                 }
@@ -44,10 +103,35 @@ function load_list () --> table[str, table[str, any], table[str], int
             end
         end
     end
+end
 
-    mod_ids, hidden = sort_mods(mods, mod_ids, "name", false)
+function has_deps(mod_id) --> bool
+    return get_field(mod_id, "Depends") != "null"
+end
 
-    return load_dest_ids(load_replaced(load_enabled(mods))), mod_ids, #mod_ids - hidden
+function get_priority(mod_id) --> bool
+    local prio = get_field(mod_id, "Priority")
+    return prio != "null" and prio or "3"
+end
+
+function has_audio(mod_id, info) --> bool
+    local type5f = (string.sub(info["type"], 1, 5))
+    local is_equip = type5f == "Equip"
+    if is_equip then
+        return get_field(mod_id, "Audio") != "null"
+    else
+        return false
+    end
+end
+
+function has_animations(mod_id, info) --> bool
+    local type5f = (string.sub(info["type"], 1, 5))
+    local is_equip = type5f == "Equip"
+    if is_equip then
+        return get_field(mod_id, "Animation") != "null"
+    else
+        return false
+    end
 end
 
 function sort_mods (mods, mod_ids, key, reverse) --> table[str]
@@ -135,13 +219,14 @@ function save_enabled (mods) --> nil
 end
 
 function get_deps(mods, mod, parent, iterations) --> table[str]
-    local dep, sub_dep, sub_deps
+    local dep, sub_dep, sub_deps, dep_string
     local deps = {}
     
-    if mods[mod]["depends"] == "null" then
+    if not has_deps(mod) then
         return deps
     end
-    for dep in string.gmatch(mods[mod]["depends"], "([^';']+)") do
+    dep_string = get_field(mod, "Depends")
+    for dep in string.gmatch(dep_string, "([^';']+)") do
         if (not aux_deps[dep] and dep != parent) then
             table.insert(deps, dep)
             aux_deps[dep] = true

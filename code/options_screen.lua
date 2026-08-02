@@ -72,6 +72,16 @@ function options_screen () --> nil
             },
             key = "use_ppsspp_ver"
         })
+    table.insert(options,
+        {
+            name = TEXT.cached_loading,
+            current = cached_loading and 2 or 1,
+            options = {
+                {TEXT.no, "false"},
+                {TEXT.yes, "true"}
+            },
+            key = "cached_loading"
+        })
     
     frame = 0
     while true do
@@ -127,11 +137,20 @@ function options_screen () --> nil
         screen.print(448, 257, TEXT.exit, 0.6)
         screen.print(394, 257, TEXT.ok, 0.6)
 
+        sp_print(" ::select::"..TEXT.clear_mod_cache, 200, 257, 0.6)
+
         screen.flip()
         if (circle_to_confirm and buttons.circle) or (not circle_to_confirm and buttons.cross) then -- confirm button 
             save_options(options)
         elseif (circle_to_confirm and buttons.cross) or (not circle_to_confirm and buttons.circle) then -- cancel button
             break
+        elseif (buttons.select) then
+            files.delete("user/mod_data_NOHD.json")
+            files.delete("user/mod_list_NOHD.json")
+            files.delete("user/mod_list_HD.json")
+            files.delete("user/mod_list_HD.json")
+            files.delete("user/mod_list_FUC.json")
+            files.delete("user/mod_list_FUC.json")
         end
     end
 end

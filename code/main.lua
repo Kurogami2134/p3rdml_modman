@@ -86,11 +86,12 @@ function install_mods (mods) --> nil
             if info["type"] == "Pack" then
             elseif info["type"] == "Code" then
                 do_build_mods = true
-                if not code_mods[info.priority] then
+                local prio = get_priority(mod)
+                if not code_mods[prio] then
                     prio_set = {}
-                    code_mods[info.priority] = prio_set
+                    code_mods[prio] = prio_set
                 end
-                table.insert(code_mods[info.priority], mod)
+                table.insert(code_mods[prio], mod)
             elseif info["type"] == "Patch" then
                 do_build_patches = true
 
@@ -119,12 +120,12 @@ function install_mods (mods) --> nil
                     dest_ids = dest_ids..mod..":"..info["dest_id"]..";"
                 end
 
-                if info["dest_id"] != nil and info["has_animations"] then
+                if info["dest_id"] != nil and has_animations(mod, info) then
                     anim_mods[mod] = info["dest_id"]
                     compile_anims = true
                 end
 
-                if info["dest_id"] != nil and info["has_audio"] then
+                if info["dest_id"] != nil and has_audio(mod, info) then
                     local audio = split(ini.read(MODS_DIR..mod.."/mod.ini", "MOD INFO", "Audio", "null"), ";")
 
                     local header = ini.read(data_dir.."/AUDIO/"..string.sub(info["type"], 6, -1)..".ini", "header"..info["dest_id"], "null")
@@ -257,7 +258,12 @@ function build_mods_bin (mod_table) --> nil
 end
 
 function main () --> nil
-    local mods, mod_ids, mod_count = load_list()
+    local mods, mod_ids, mod_count
+    if cached_loading then
+        mods, mod_ids, mod_count = cached_load_list()
+    else
+        mods, mod_ids, mod_count = uncached_load_list()
+    end
 
     if mod_count == 0 then
         msg_box(TEXT.no_mods, 50)
@@ -327,20 +333,6 @@ function main () --> nil
 
     if preview != nil then
         preview:blit(273, 55)
-    end
-
-    if last_img == mod_ids[page*10+index] then
-        x = 284
-
-        if mods[mod_ids[page*10+index]]["has_animations"] then
-            atlas:draw("has_animations", x, 221)
-            x += 20
-        end
-
-        if mods[mod_ids[page*10+index]]["has_audio"] then
-            atlas:draw("has_audio", x, 221)
-            x += 20
-        end
     end
 
     if buttons.down then

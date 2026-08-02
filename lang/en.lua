@@ -63,4 +63,6 @@ TEXT = {
     use_ppsspp_ver_yes = "Yes",
     use_ppsspp_ver_no = "No",
     invalid_iso = "Invalid ISO",
+    clear_mod_cache = "Clear Mod Cache",
+    cached_loading = "Cached mod loading",
 }
