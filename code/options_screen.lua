@@ -147,9 +147,9 @@ function options_screen () --> nil
         elseif (buttons.select) then
             files.delete("user/mod_data_NOHD.json")
             files.delete("user/mod_list_NOHD.json")
+            files.delete("user/mod_data_HD.json")
             files.delete("user/mod_list_HD.json")
-            files.delete("user/mod_list_HD.json")
-            files.delete("user/mod_list_FUC.json")
+            files.delete("user/mod_data_FUC.json")
             files.delete("user/mod_list_FUC.json")
         end
     end

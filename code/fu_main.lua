@@ -177,7 +177,12 @@ end
 
 
 function main () --> nil
-    local mods, mod_ids, mod_count = load_list()
+    local mods, mod_ids, mod_count
+    if cached_loading then
+        mods, mod_ids, mod_count = cached_load_list()
+    else
+        mods, mod_ids, mod_count = uncached_load_list()
+    end
 
     if mod_count == 0 then
         msg_box(TEXT.no_mods, 50)
