@@ -80,12 +80,35 @@ Patch mods are basically [code mods](#code-mods) that are loaded specifically af
 
 ### Mod packs
 
-Mod packs are "empty" mods with multiple dependencies for the mods they should enable, mods in a mod pack may be enabled individually, but having a single toggle handle all of them should make distribution simpler.
+Mod packs are "empty" mods with a lost of mods they should toggle, mods in a mod pack may be enabled individually, but having a single toggle handle all of them should make distribution simpler.
 
     [MOD INFO]
     Name="MOD PACK NAME"
     Type="Pack"
-    Depends="mod1;mod2;mod3
+    ModList="mod1;mod2;mod3
+
+### Pseudo Mod packs
+
+Pseudo mod packs or "compound mods" are mods which contain "sub-mods". Sub mods are basically mods, but without individual entries in the mod list, this means pseudo mod packs may not include any mod which requires actions from the user (i.e equipment replacements).
+
+    [MOD INFO]
+    Name="MOD PACK NAME"
+    Type="PseudoPack"
+    SubModList="mod1;mod2;mod3
+
+    [mod1]
+    Files="PATCHFILE"
+    Target="FILEID"
+    Type="Patch"
+
+    [mod2]
+    Files="NEWFILE;NEWFILE2"
+    Target="FILEID;FILEID2"
+    Type="File"
+
+    [mod3]
+    Files="FILE"
+    Type="Code"
 
 ### Equipment Replacement
 

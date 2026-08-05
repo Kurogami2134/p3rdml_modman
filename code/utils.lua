@@ -63,8 +63,11 @@ function replace_files (file_mods) --> nil
     end
 end
 
-function get_field(mod_id, field) --> str
-    local data = ini.read(MODS_DIR..mod_id.."/mod.ini", "MOD INFO", field, "null")
+function get_field(mod_id, field, sub_mod) --> str
+    if not sub_mod then
+        sub_mod = "MOD INFO"
+    end
+    local data = ini.read(MODS_DIR..mod_id.."/mod.ini", sub_mod, field, "null")
     return data
 end
 

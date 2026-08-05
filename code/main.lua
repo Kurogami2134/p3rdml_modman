@@ -28,10 +28,13 @@ function copy_file (mod, origin, dest) --> nil
     --files.rename("ms0:/"..modloader_root.."/files/"..files.nopath(origin), "ms0:/"..modloader_root.."/files/"..dest)
 end
 
-function get_target(mod_id) --> str
-    local target = ini.read(MODS_DIR..mod_id.."/mod.ini", "MOD INFO", "Target", "null")
+function get_target(mod_id, sub_mod) --> str
+    if not sub_mod then
+        sub_mod = "MOD INFO"
+    end
+    local target = ini.read(MODS_DIR..mod_id.."/mod.ini", sub_mod, "Target", "null")
     if game_version == "HD" then
-        local target_hd = ini.read(MODS_DIR..mod_id.."/mod.ini", "MOD INFO", "TargetHD", "null")
+        local target_hd = ini.read(MODS_DIR..mod_id.."/mod.ini", sub_mod, "TargetHD", "null")
         if target_hd != "null" then
             target = target_hd
         end
@@ -40,21 +43,95 @@ function get_target(mod_id) --> str
     return target
 end
 
-function get_mod_files(mod_id) --> str
-    local file = ini.read(MODS_DIR..mod_id.."/mod.ini", "MOD INFO", "Files", "null")
+function get_mod_files(mod_id, sub_mod) --> str
+    if not sub_mod then
+        sub_mod = "MOD INFO"
+    end
+    local file = ini.read(MODS_DIR..mod_id.."/mod.ini", sub_mod, "Files", "null")
     if game_version == "HD" then
-        local file_hd = ini.read(MODS_DIR..mod_id.."/mod.ini", "MOD INFO", "FilesHD", "null")
+        local file_hd = ini.read(MODS_DIR..mod_id.."/mod.ini", sub_mod, "FilesHD", "null")
         if file_hd != "null" then
             file = file_hd
         end
     elseif (not use_ppsspp_ver) and os.cfw() != "PPSSPP" then
-        local file_og = ini.read(MODS_DIR..mod_id.."/mod.ini", "MOD INFO", "FilesOG", "null")
+        local file_og = ini.read(MODS_DIR..mod_id.."/mod.ini", sub_mod, "FilesOG", "null")
         if file_og != "null" then
             file = file_og
         end
     end
 
     return file
+end
+
+function load_sub_mod (mod, sub_mod)
+    return {
+        type = get_field(mod, "Type", sub_mod)
+    }
+end
+
+function install_mod (mod, info, data, sub_mod)
+    if not sub_mod then
+        sub_mod = "MOD INFO"
+    end
+    if info["type"] == "Pack" then
+    elseif info["type"] == "PseudoPack" then
+        local sub_mods = split(get_field(mod, "SubModList"), ";")
+        for i=1,#sub_mods do
+            install_mod(mod, load_sub_mod(mod, sub_mods[i]), data, sub_mods[i])
+        end
+    elseif info["type"] == "Code" then
+        data.do_build_mods = true
+        local prio = get_priority(mod, sub_mod)
+        if not data.code_mods[prio] then
+            prio_set = {}
+            data.code_mods[prio] = prio_set
+        end
+        table.insert(data.code_mods[prio], {mod, sub_mod})
+    elseif info["type"] == "Patch" then
+        data.do_build_patches = true
+
+        file = split(get_mod_files(mod, sub_mod), ";")
+        target = split(get_target(mod, sub_mod), ";")
+        for i=1,#file do
+            if data.patch_mods[target[i]] == nil then
+                data.patch_mods[target[i]] = {}
+            end
+            table.insert(data.patch_mods[target[i]], {mod, file[i]})
+        end
+    elseif info["type"] == "EquipSET" then
+        data.dest_ids = data.dest_ids..mod..":"..info["dest_id"]..";"
+        file = split(get_mod_files(mod), ";")
+        table.insert(data.set_mods, {mod, info["dest_id"], split(info["dest"], ","), file})
+    elseif info["type"] == "EquipCATSET" then
+        data.dest_ids = data.dest_ids..mod..":"..info["dest_id"]..";"
+        file = split(get_mod_files(mod), ";")
+        table.insert(data.cat_set_mods, {mod, info["dest_id"], split(info["dest"], ","), file})
+    elseif info["dest"] != nil then
+        data.replaced = data.replaced..mod..info["dest"]..";"
+        file = get_mod_files(mod)
+        copy_file(mod, file, info["dest"])
+        
+        if info["dest_id"] then
+            data.dest_ids = data.dest_ids..mod..":"..info["dest_id"]..";"
+        end
+
+        if info["dest_id"] != nil and has_animations(mod, info) then
+            data.anim_mods[mod] = info["dest_id"]
+            data.compile_anims = true
+        end
+
+        if info["dest_id"] != nil and has_audio(mod, info) then
+            local audio = split(ini.read(MODS_DIR..mod.."/mod.ini", sub_mod, "Audio", "null"), ";")
+
+            local header = ini.read(data_dir.."/AUDIO/"..string.sub(info["type"], 6, -1)..".ini", "header"..info["dest_id"], "null")
+            local bin = ini.read(data_dir.."/AUDIO/"..string.sub(info["type"], 6, -1)..".ini", "bin"..info["dest_id"], "null")
+
+            copy_file(mod, audio[1], header)
+            copy_file(mod, audio[2], bin)
+        end
+    elseif info["dest"] == nil then
+        table.insert(data.file_mods, {mod, sub_mod})
+    end
 end
 
 function install_mods (mods) --> nil
@@ -66,100 +143,49 @@ function install_mods (mods) --> nil
         files.mkdir("ms0:/"..modloader_root.."/MODS")
     end
 
-    local replaced = ""
-    local dest_ids = ""
-    local code_mods  = {}
-    local anim_mods  = {}
-    local file_mods  = {}
-    local set_mods   = {}
-    local cat_set_mods   = {}
-    local patch_mods = {}
-    
-    local do_build_patches = false
-    local do_build_mods = false
-    local compile_anims = false
+    local data = {
+        replaced = "",
+        dest_ids = "",
+        code_mods  = {},
+        anim_mods  = {},
+        file_mods  = {},
+        set_mods   = {},
+        cat_set_mods   = {},
+        patch_mods = {},
+
+        do_build_patches = false,
+        do_build_mods = false,
+        compile_anims = false,
+    }
 
     local mod, info
 
     for mod, info in pairs(mods) do
         if info["enabled"] then
-            if info["type"] == "Pack" then
-            elseif info["type"] == "Code" then
-                do_build_mods = true
-                local prio = get_priority(mod)
-                if not code_mods[prio] then
-                    prio_set = {}
-                    code_mods[prio] = prio_set
-                end
-                table.insert(code_mods[prio], mod)
-            elseif info["type"] == "Patch" then
-                do_build_patches = true
-
-                file = split(get_mod_files(mod), ";")
-                target = split(get_target(mod), ";")
-                for i=1,#file do
-                    if patch_mods[target[i]] == nil then
-                        patch_mods[target[i]] = {}
-                    end
-                    table.insert(patch_mods[target[i]], {mod, file[i]})
-                end
-            elseif info["type"] == "EquipSET" then
-                dest_ids = dest_ids..mod..":"..info["dest_id"]..";"
-                file = split(get_mod_files(mod), ";")
-                table.insert(set_mods, {mod, info["dest_id"], split(info["dest"], ","), file})
-            elseif info["type"] == "EquipCATSET" then
-                dest_ids = dest_ids..mod..":"..info["dest_id"]..";"
-                file = split(get_mod_files(mod), ";")
-                table.insert(cat_set_mods, {mod, info["dest_id"], split(info["dest"], ","), file})
-            elseif info["dest"] != nil then
-                replaced = replaced..mod..info["dest"]..";"
-                file = get_mod_files(mod)
-                copy_file(mod, file, info["dest"])
-                
-                if info["dest_id"] then
-                    dest_ids = dest_ids..mod..":"..info["dest_id"]..";"
-                end
-
-                if info["dest_id"] != nil and has_animations(mod, info) then
-                    anim_mods[mod] = info["dest_id"]
-                    compile_anims = true
-                end
-
-                if info["dest_id"] != nil and has_audio(mod, info) then
-                    local audio = split(ini.read(MODS_DIR..mod.."/mod.ini", "MOD INFO", "Audio", "null"), ";")
-
-                    local header = ini.read(data_dir.."/AUDIO/"..string.sub(info["type"], 6, -1)..".ini", "header"..info["dest_id"], "null")
-                    local bin = ini.read(data_dir.."/AUDIO/"..string.sub(info["type"], 6, -1)..".ini", "bin"..info["dest_id"], "null")
-
-                    copy_file(mod, audio[1], header)
-                    copy_file(mod, audio[2], bin)
-                end
-            elseif info["dest"] == nil then
-                table.insert(file_mods, mod)
-            end
+            install_mod(mod, info, data, "MOD INFO")
         end
     end
 
-    ini.write(replaced_db, "files", replaced)
-    ini.write(dest_ids_db, "ids", dest_ids)
-    if do_build_patches then
-        build_patches(patch_mods)
+    ini.write(replaced_db, "files", data.replaced)
+    ini.write(dest_ids_db, "ids", data.dest_ids)
+    if data.do_build_patches then
+        build_patches(data.patch_mods)
     end
-    if #file_mods > 0 then
-        replace_files(file_mods)
+    if #data.file_mods > 0 then
+        replace_files(data.file_mods)
     end
-    if #set_mods > 0 then
-        copy_sets(set_mods)
+    if #data.set_mods > 0 then
+        copy_sets(data.set_mods)
     end
-    if #cat_set_mods > 0 then
-        copy_cat_sets(cat_set_mods)
+    if #data.cat_set_mods > 0 then
+        copy_cat_sets(data.cat_set_mods)
     end
 
-    if do_build_mods then
-        build_mods_bin(code_mods)
+    if data.do_build_mods then
+        build_mods_bin(data.code_mods)
     end
-    if compile_anims then
-        build_animations(anim_mods)
+    if data.compile_anims then
+        build_animations(data.anim_mods)
     end
 
     file_copy(data_dir.."/PRELOAD.BIN", "ms0:/"..modloader_root, false)
@@ -206,8 +232,8 @@ function replace_files (file_mods) --> nil
         local targets = {}
         local replacements = {}
 
-        target = get_target(mod)
-        files = get_mod_files(mod)
+        target = get_target(mod[1], mod[2])
+        files = get_mod_files(mod[1], mod[2])
 
         for file in string.gmatch(target, "([^;]+)") do
             table.insert(targets, file)
@@ -217,17 +243,20 @@ function replace_files (file_mods) --> nil
         end
         
         for i, dest in pairs(targets) do
-            copy_file(mod, replacements[i], dest)
+            copy_file(mod[1], replacements[i], dest)
         end
     end
 end
 
-function build_animations (anim_mods) --> nil
+function build_animations (anim_mods, sub_mod) --> nil
+    if not sub_mod then
+        sub_mod = "MOD INFO"
+    end
     local animations = {}
     --local mods = ""
     for mod, mdl_id in pairs(anim_mods) do
         --mods = mods..mod..":"..mdl_id..";"
-        local animpath = MODS_DIR..mod.."/"..ini.read(MODS_DIR..mod.."/mod.ini", "MOD INFO", "Animation", "null")
+        local animpath = MODS_DIR..mod.."/"..ini.read(MODS_DIR..mod.."/mod.ini", sub_mod, "Animation", "null")
         table.insert(animations, {animpath, mdl_id})
     end
     --ini.write(anim_db, "Anim", mods)
@@ -241,13 +270,13 @@ function build_mods_bin (mod_table) --> nil
     for priority=0, 5 do
         if mod_table[tostring(priority)] then
             for _, mod in pairs(mod_table[tostring(priority)]) do
-                mod_files = get_mod_files(mod)
+                mod_files = get_mod_files(mod[1], mod[2])
                 for mod_file in string.gmatch(mod_files, "([^';']+)") do
                     file_name = string.upper(files.nopath(mod_file))
                     file:write(string.char(string.len(file_name)+2))
                     file:write("/"..file_name..string.char(0))
 
-                    file_copy(MODS_DIR..mod.."/"..mod_file, "ms0:/"..modloader_root.."/MODS", false)
+                    file_copy(MODS_DIR..mod[1].."/"..mod_file, "ms0:/"..modloader_root.."/MODS", false)
                 end
             end
         end
